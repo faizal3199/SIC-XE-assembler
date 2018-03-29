@@ -1,12 +1,13 @@
 Line	Address	Label	OPCODE	OPERAND	Comment
-5	01000	TEST	START	1000	
-10	01000		LDA	#5	load value 5 into register a
-15	01003		STA	ALPHA	store in ALPHA
-20	01006		LDA	#90	load ascii code for 'z' into reg a
-25	01009		STCH	C1	store in character variable C1
-30	.
+5	. My test code
+10	01000	TEST	START	1000	
+15	01000		LDA	#5	load value 5 into register a
+20	01003		STA	ALPHA	store in ALPHA
+25	01006		LDA	#90	load ascii code for 'z' into reg a
+30	01009		STCH	C1	store in character variable C1
 35	.
 40	.
-45	0100C	ALPHA	RESW	1	ONE-WORD variable
-50	0100F	C1	RESB	1	one byte variable
-55	01010		END	TEST	
+45	.
+50	0100C	ALPHA	RESW	1	ONE-WORD variable
+55	0100F	C1	RESB	1	one byte variable
+60	01010		END	TEST	

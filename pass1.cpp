@@ -22,20 +22,26 @@ void pass1(){
   string writeData;
   int index=0;
 
-  getline(sourceFile,fileLine);
-  while(checkCommentLine(fileLine)){
-    getline(sourceFile,fileLine);//read first input line
-  }
-
   bool statusCode;
   string label,opcode,operand,comment;
+  string tempOpcode;
+
+  int startAddress,LOCCTR,lineNumber,lastDeltaLOCCTR;
+  lineNumber = 0;
+  lastDeltaLOCCTR = 0;
+
+  getline(sourceFile,fileLine);
+  lineNumber += 5;
+  while(checkCommentLine(fileLine)){
+    writeData = to_string(lineNumber) + "\t" + fileLine;
+    writeToFile(intermediateFile,writeData);
+    getline(sourceFile,fileLine);//read first input line
+    lineNumber += 5;
+    index = 0;
+  }
 
   readFirstNonWhiteSpace(fileLine,index,statusCode,label);
   readFirstNonWhiteSpace(fileLine,index,statusCode,opcode);
-
-  int startAddress,LOCCTR,lineNumber,lastDeltaLOCCTR;
-  lineNumber = 5;
-  lastDeltaLOCCTR = 0;
 
   if(opcode=="START"){
     readFirstNonWhiteSpace(fileLine,index,statusCode,operand);
@@ -73,7 +79,6 @@ void pass1(){
         }
       }
       if(OPTAB[getRealOpcode(opcode)].exists=='y'){//Search for opcode in OPTAB
-        readFirstNonWhiteSpace(fileLine,index,statusCode,operand);
         if(OPTAB[getRealOpcode(opcode)].format==3){
           LOCCTR += 3;
           lastDeltaLOCCTR += 3;
@@ -81,10 +86,24 @@ void pass1(){
             LOCCTR += 1;
             lastDeltaLOCCTR += 3;
           }
+          if(OPTAB[getRealOpcode(opcode)].opcode=="RSUB"){
+            operand = " ";
+          }
+          else{
+            readFirstNonWhiteSpace(fileLine,index,statusCode,operand);
+          }
+        }
+        else if(OPTAB[getRealOpcode(opcode)].format==1){
+          operand = " ";
         }
         else{
           LOCCTR += OPTAB[getRealOpcode(opcode)].format;
           lastDeltaLOCCTR += OPTAB[getRealOpcode(opcode)].format;
+          readFirstNonWhiteSpace(fileLine,index,statusCode,operand);
+          if(operand[operand.length()-1] == ','){
+            readFirstNonWhiteSpace(fileLine,index,statusCode,tempOpcode);
+            opcode += tempOpcode;
+          }
         }
       }
       else if(opcode == "WORD"){

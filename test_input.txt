@@ -1,3 +1,4 @@
+. My test code
 TEST START 1000
   LDA #5  load value 5 into register a
   STA ALPHA store in ALPHA
