@@ -4,6 +4,10 @@
 
 using namespace std;
 
+/*Variable to keep persisted*/
+bool error_flag=false;
+int program_length;
+
 void pass1(){
   ifstream sourceFile;//begin
   ofstream intermediateFile, errorFile;
@@ -12,6 +16,7 @@ void pass1(){
   intermediateFile.open("intermediate_file.txt");
   writeToFile(intermediateFile,"Line\tAddress\tLabel\tOPCODE\tOPERAND\tComment");
   errorFile.open("error_file.txt");
+  writeToFile(errorFile,"************PASS1************");
 
   string fileLine;
   string writeData;
@@ -64,6 +69,7 @@ void pass1(){
         else{
           writeData = "Line: "+to_string(lineNumber)+" : Duplicate symbol for '"+label+"'. Previously defined at "+SYMTAB[label].address;
           writeToFile(errorFile,writeData);
+          error_flag = true;
         }
       }
       if(OPTAB[getRealOpcode(opcode)].exists=='y'){//Search for opcode in OPTAB
@@ -115,6 +121,7 @@ void pass1(){
         readFirstNonWhiteSpace(fileLine,index,statusCode,operand);
         writeData = "Line: "+to_string(lineNumber)+" : Invalid OPCODE. Found " + opcode;
         writeToFile(errorFile,writeData);
+        error_flag = true;
       }
       readFirstNonWhiteSpace(fileLine,index,statusCode,comment,true);
       writeData = to_string(lineNumber) + "\t" + intToStringHex(LOCCTR-lastDeltaLOCCTR) + "\t" + label + "\t" + opcode + "\t" + operand + "\t" + comment;
@@ -136,7 +143,11 @@ void pass1(){
   writeData = to_string(lineNumber) + "\t" + intToStringHex(LOCCTR-lastDeltaLOCCTR) + "\t" + label + "\t" + opcode + "\t" + operand + "\t" + comment;
   writeToFile(intermediateFile,writeData);
 
-  int program_length = LOCCTR - startAddress;
+  program_length = LOCCTR - startAddress;
+
+  sourceFile.close();
+  intermediateFile.close();
+  errorFile.close();
 }
 
 int main(){
