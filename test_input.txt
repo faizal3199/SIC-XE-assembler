@@ -1,0 +1,11 @@
+TEST START 1000
+  LDA #5  load value 5 into register a
+  STA ALPHA store in ALPHA
+  LDA #90 load ascii code for 'z' into reg a
+  STCH C1 store in character variable C1
+.
+.
+.
+ALPHA RESW 1 ONE-WORD variable
+C1  RESB 1  one byte variable
+  END TEST
