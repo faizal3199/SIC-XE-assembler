@@ -1,5 +1,6 @@
 /*This file contains function helpfull for functioningof other files
-Function declared here rarelly changes*/
+Function declared here rarelly changes
+This file also contains important files to #include*/
 #include<iostream>
 #include<fstream>
 #include<string>

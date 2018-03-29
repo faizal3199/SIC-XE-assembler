@@ -1,10 +1,5 @@
 /*Code for pass1*/
-#include<iostream>
-#include<fstream>
-#include<string>
-#include<map>
-
-#include "utility.cpp"
+#include "utility.cpp" /*conatins all important headers*/
 #include "tables.cpp"
 
 using namespace std;
