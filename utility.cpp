@@ -58,6 +58,29 @@ string intToStringHex(int x,int fill = 5){
   return temp;
 }
 
+string expandString(string data,int length,char fillChar,bool back=false){
+  if(back){
+    if(length<=data.length()){
+      return data.substr(0,length);
+    }
+    else{
+      for(int i = length-data.length();i>0;i--){
+        data += fillChar;
+      }
+    }
+  }
+  else{
+    if(length<=data.length()){
+      return data.substr(data.length()-length,length);
+    }
+    else{
+      for(int i = length-data.length();i>0;i--){
+        data = fillChar + data;
+      }
+    }
+  }
+  return data;
+}
 int stringHexToInt(string x){
   return stoul(x,nullptr,16);
 }
@@ -137,8 +160,12 @@ void readByteOperand(string line,int& index,bool& status,string& data){
   }
 }
 
-void writeToFile(ofstream& file,string data){
-  file<<data<<endl;
+void writeToFile(ofstream& file,string data,bool newline=true){
+  if(newline){
+    file<<data<<endl;
+  }else{
+    file<<data;
+  }
 }
 
 string getRealOpcode(string opcode){
@@ -148,8 +175,8 @@ string getRealOpcode(string opcode){
   return opcode;
 }
 
-char getOpcodeFormat(string opcode){
-  if(opcode[0] == '+' || opcode[0] == '@'){
+char getFlagFormat(string opcode){
+  if(opcode[0] == '#' || opcode[0] == '+' || opcode[0] == '@'){
     return opcode[0];
   }
   return ' ';

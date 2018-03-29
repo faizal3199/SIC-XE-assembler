@@ -25,13 +25,51 @@ struct struct_label{
        exists='n';
      }
 };
+struct struct_register{
+     char num;
+     char exists;
+     struct_register(){
+       num = 'F';
+       exists='n';
+     }
+};
 
 typedef map<string,struct_label> SYMBOL_TABLE_TYPE;
 typedef map<string,struct_opcode> OPCODE_TABLE_TYPE;
+typedef map<string,struct_register> REG_TABLE_TYPE;
 
 SYMBOL_TABLE_TYPE SYMTAB;
 OPCODE_TABLE_TYPE OPTAB;
+REG_TABLE_TYPE REGTAB;
 
+void load_REGTAB(){
+  REGTAB["A"].num='0';
+  REGTAB["A"].exists='y';
+
+  REGTAB["X"].num='1';
+  REGTAB["X"].exists='y';
+
+  REGTAB["L"].num='2';
+  REGTAB["L"].exists='y';
+
+  REGTAB["B"].num='3';
+  REGTAB["B"].exists='y';
+
+  REGTAB["S"].num='4';
+  REGTAB["S"].exists='y';
+
+  REGTAB["T"].num='5';
+  REGTAB["T"].exists='y';
+
+  REGTAB["F"].num='6';
+  REGTAB["F"].exists='y';
+
+  REGTAB["PC"].num='8';
+  REGTAB["PC"].exists='y';
+
+  REGTAB["SW"].num='9';
+  REGTAB["SW"].exists='y';
+}
 void load_OPTAB(){
   OPTAB["ADD"].opcode="18";
   OPTAB["ADD"].format=3;
@@ -173,7 +211,7 @@ void load_OPTAB(){
   OPTAB["RMO"].format=2;
   OPTAB["RMO"].exists='y';
 
-  OPTAB["RSUB"].opcode="4C";
+  OPTAB["RSUB"].opcode="4F";
   OPTAB["RSUB"].format=3;
   OPTAB["RSUB"].exists='y';
 
@@ -268,4 +306,9 @@ void load_OPTAB(){
   OPTAB["WD"].opcode="DC";
   OPTAB["WD"].format=3;
   OPTAB["WD"].exists='y';
+}
+
+void load_tables(){
+  load_OPTAB();
+  load_REGTAB();
 }

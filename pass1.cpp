@@ -82,7 +82,7 @@ void pass1(){
         if(OPTAB[getRealOpcode(opcode)].format==3){
           LOCCTR += 3;
           lastDeltaLOCCTR += 3;
-          if(getOpcodeFormat(opcode)=='+'){
+          if(getFlagFormat(opcode)=='+'){
             LOCCTR += 1;
             lastDeltaLOCCTR += 3;
           }
@@ -90,7 +90,10 @@ void pass1(){
             operand = " ";
           }
           else{
-            readFirstNonWhiteSpace(fileLine,index,statusCode,operand);
+            if(operand[operand.length()-1] == ','){
+              readFirstNonWhiteSpace(fileLine,index,statusCode,tempOpcode);
+              opcode += tempOpcode;
+            }
           }
         }
         else if(OPTAB[getRealOpcode(opcode)].format==1){
@@ -170,7 +173,7 @@ void pass1(){
 }
 
 int main(){
-  load_OPTAB();
+  load_tables();
   pass1();
   return 0;
 }
