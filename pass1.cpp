@@ -8,6 +8,33 @@ using namespace std;
 bool error_flag=false;
 int program_length;
 
+void handle_LTORG(string& litPrefix, int& lineNumberDelta,int lineNumber,int& LOCCTR, int& lastDeltaLOCCTR);{
+  string litAddress,litValue;
+  int saveLineNumber = lineNumber;
+  litPrefix = "";
+  for(auto const& it: LITTAB){
+    litAddress = it.second.address;
+    litValue = it.second.value;
+    if(litAddress!="?"){
+      /*Pass as already address is assigned*/
+    }
+    else{
+      lineNumber += 5;
+      LITTAB[it.first].address = intToStringHex(LOCCTR);
+      litPrefix += "\n" + to_string(lineNumber) + "\t" + intToStringHex(LOCCTR) + "\t" + "*" + "\t" + "="+litValue + "\t" + " " + "\t" + " ";
+
+      if(litValue[0]=='X'){
+        LOCCTR += (litValue.length() -3)/2;
+        lastDeltaLOCCTR += (litValue.length() -3)/2;
+      }
+      else if(litValue[0]=='C'){
+        LOCCTR += litValue.length() -3;
+        lastDeltaLOCCTR += litValue.length() -3;
+      }
+    }
+  }
+  lineNumberDelta = saveLineNumber - lineNumber;
+}
 void pass1(){
   ifstream sourceFile;//begin
   ofstream intermediateFile, errorFile;
@@ -26,7 +53,7 @@ void pass1(){
   string label,opcode,operand,comment;
   string tempOperand;
 
-  int startAddress,LOCCTR,lineNumber,lastDeltaLOCCTR;
+  int startAddress,LOCCTR,lineNumber,lastDeltaLOCCTR,lineNumberDelta=0;
   lineNumber = 0;
   lastDeltaLOCCTR = 0;
 
@@ -155,32 +182,7 @@ void pass1(){
         readFirstNonWhiteSpace(fileLine,index,statusCode,operand);
       }
       else if(opcode=="LTORG"){
-        string litAddress,litValue,litPrefix;
-        int lineNumberDelta = lineNumber;
-        litPrefix = "";
-        for(auto const& it: LITTAB){
-          litAddress = it.second.address;
-          litValue = it.second.value;
-          if(litAddress!="?"){
-            /*Pass as already address is assigned*/
-          }
-          else{
-            lineNumber += 5;
-            LITTAB[it.first].address = intToStringHex(LOCCTR);
-            litPrefix += "\n" + to_string(lineNumber) + "\t" + intToStringHex(LOCCTR) + "\t" + "*" + "\t" + "="+litValue + "\t" + " " + "\t" + " ";
-
-            if(litValue[0]=='X'){
-              LOCCTR += (operand.length() -3)/2;
-              lastDeltaLOCCTR += (operand.length() -3)/2;
-            }
-            else if(litValue[0]=='C'){
-              LOCCTR += operand.length() -3;
-              lastDeltaLOCCTR += operand.length() -3;
-            }
-          }
-        }
-        writeDataSuffix = litPrefix;
-        lineNumber = lineNumberDelta;
+        handle_LTORG(writeDataSuffix,lineNumberDelta,lineNumber,LOCCTR,lastDeltaLOCCTR);
       }
       else{
         readFirstNonWhiteSpace(fileLine,index,statusCode,operand);
@@ -199,7 +201,8 @@ void pass1(){
     writeToFile(intermediateFile,writeData);
 
     getline(sourceFile,fileLine); //Read next line
-    lineNumber += 5;
+    lineNumber += 5 + lineNumberDelta;
+    lineNumberDelta = 0;
     index = 0;
     lastDeltaLOCCTR = 0;
     readFirstNonWhiteSpace(fileLine,index,statusCode,label); //Parse label
@@ -207,7 +210,10 @@ void pass1(){
   }
   readFirstNonWhiteSpace(fileLine,index,statusCode,operand);
   readFirstNonWhiteSpace(fileLine,index,statusCode,comment,true);
-  writeData = to_string(lineNumber) + "\t" + intToStringHex(LOCCTR-lastDeltaLOCCTR) + "\t" + label + "\t" + opcode + "\t" + operand + "\t" + comment;
+
+  handle_LTORG(writeDataSuffix,lineNumberDelta,lineNumber,LOCCTR,lastDeltaLOCCTR);
+
+  writeData = to_string(lineNumber) + "\t" + intToStringHex(LOCCTR-lastDeltaLOCCTR) + "\t" + label + "\t" + opcode + "\t" + operand + "\t" + comment + writeDataSuffix;
   writeToFile(intermediateFile,writeData);
 
   program_length = LOCCTR - startAddress;
