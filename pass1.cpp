@@ -173,8 +173,8 @@ void pass1(){
   errorFile.close();
 }
 
-int main(){
-  load_tables();
-  pass1();
-  return 0;
-}
+// int main(){
+//   load_tables();
+//   pass1();
+//   return 0;
+// }

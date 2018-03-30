@@ -1,53 +1,53 @@
 . TEST PROGRAM
-COPY    START   0
-FIRST   STL     RETADR
-        LDB     #LENGTH
-        BASE    LENGTH
-CLOOP   +JSUB    RDREC
-        LDA     LENGTH
-        COMP    #0
-        JEQ     ENDFIL
-        +JSUB    WRREC
-        J       CLOOP
-ENDFIL  LDA     EOF
-        STA    BUFFER
-        LDA     #3
-        STA     LENGTH
-        +JSUB    WRREC
-        J       @RETADR
-EOF     BYTE    C'EOF'
-RETADR  RESW    1
-LENGTH  RESW    1
-BUFFER  RESB    4096
+COPY    START   0 Comment here
+FIRST   STL     RETADR  Comment here
+        LDB     #LENGTH Comment here
+        BASE    LENGTH  Comment here
+CLOOP   +JSUB    RDREC  Comment here
+        LDA     LENGTH  Comment here
+        COMP    #0  Comment here
+        JEQ     ENDFIL  Comment here
+        +JSUB    WRREC  Comment here
+        J       CLOOP Comment here
+ENDFIL  LDA     EOF Comment here
+        STA    BUFFER Comment here
+        LDA     #3  Comment here
+        STA     LENGTH  Comment here
+        +JSUB    WRREC  Comment here
+        J       @RETADR Comment here
+EOF     BYTE    C'EOF' Comment here
+RETADR  RESW    1 Comment here
+LENGTH  RESW    1 Comment here
+BUFFER  RESB    4096 Comment here
 .
 .   RDREC SUBROUTINE
 .
-RDREC   CLEAR   X
-        CLEAR   A
-        CLEAR   S
-        +LDT    #4096
-RLOOP   TD      INPUT
-        JEQ     RLOOP
-        RD      INPUT
-        COMPR   A,S
-        JEQ     EXIT
-        STCH    BUFFER,X
-        TIXR    T
-        JLT     RLOOP
-EXIT    STX     LENGTH
-        RSUB
-INPUT   BYTE    X'F1'
+RDREC   CLEAR   X Comment here
+        CLEAR   A Comment here
+        CLEAR   S Comment here
+        +LDT    #4096 Comment here
+RLOOP   TD      INPUT Comment here
+        JEQ     RLOOP Comment here
+        RD      INPUT Comment here
+        COMPR   A,S Comment here
+        JEQ     EXIT Comment here
+        STCH    BUFFER,X Comment here
+        TIXR    T Comment here
+        JLT     RLOOP Comment here
+EXIT    STX     LENGTH Comment here
+        RSUB Comment here
+INPUT   BYTE    X'F1' Comment here
 .
 .   WRREC SUBROUTINE
 .
-WRREC   CLEAR   X
-        LDT     LENGTH
-WLOOP   TD      OUTPUT
-        JEQ     WLOOP
-        LDCH    BUFFER,X
-        WD      OUTPUT
-        TIXR    T
-        JLT     WLOOP
-        RSUB
-OUTPUT  BYTE    X'05'
-        END     FIRST
+WRREC   CLEAR   X Comment here
+        LDT     LENGTH Comment here
+WLOOP   TD      OUTPUT Comment here
+        JEQ     WLOOP Comment here
+        LDCH    BUFFER,X Comment here
+        WD      OUTPUT Comment here
+        TIXR    T Comment here
+        JLT     WLOOP Comment here
+        RSUB Comment here
+OUTPUT  BYTE    X'05' Comment here
+        END     FIRST Comment here

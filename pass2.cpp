@@ -22,8 +22,8 @@ bool nobase;
 string readTillTab(string data,int& index){
   string tempBuffer = "";
 
-  while(fileLine[index] != '\t'){
-    tempBuffer += fileLine[index];
+  while(data[index] != '\t'){
+    tempBuffer += data[index];
     index++;
   }
   index++;
@@ -48,7 +48,7 @@ void readIntermediateFile(ifstream& readFile,bool& isComment, int& lineNumber, i
   address = stringHexToInt(readTillTab(fileLine,index));
   label = readTillTab(fileLine,index);
   opcode = readTillTab(fileLine,index);
-  if(opcode=='BYTE'){
+  if(opcode=="BYTE"){
     readByteOperand(fileLine,index,tempStatus,operand);
   }
   else{
@@ -57,7 +57,7 @@ void readIntermediateFile(ifstream& readFile,bool& isComment, int& lineNumber, i
       operand = "";
     }
   }
-  readFirstNonWhiteSpace(fileLine,index,tempStatus,comment,true)
+  readFirstNonWhiteSpace(fileLine,index,tempStatus,comment,true);
 }
 
 string createObjectCodeFormat34(){
@@ -92,7 +92,7 @@ string createObjectCodeFormat34(){
       return objcode;
     }
     else if(SYMTAB[tempOperand].exists=='n') {
-      writeData = "Line: "+to_string(lineNumber)
+      writeData = "Line: "+to_string(lineNumber);
       writeData += "Symbol doesn't exists. Found " + tempOperand;
       writeToFile(errorFile,writeData);
       objcode = intToStringHex(stringHexToInt(OPTAB[getRealOpcode(opcode)].opcode)+1,2);
@@ -110,7 +110,7 @@ string createObjectCodeFormat34(){
 
         /*add modifacation record here*/
         modificationRecord += "M^" + intToStringHex(address+1,6);
-        modificationRecord += (halfBytes==5)"05":"03";
+        modificationRecord += (halfBytes==5)?"05":"03";
         modificationRecord += '\n';
 
         return objcode;
@@ -118,7 +118,7 @@ string createObjectCodeFormat34(){
 
       /*Handle format 3*/
       program_counter = address;
-      program_counter += (halfBytes==5)4:3;
+      program_counter += (halfBytes==5)?4:3;
       int relativeAddress = operandAddress - program_counter;
 
       if(relativeAddress>=(-2048) && relativeAddress<=2047){
@@ -145,7 +145,7 @@ string createObjectCodeFormat34(){
 
         /*add modifacation record here*/
         modificationRecord += "M^" + intToStringHex(address+1,6);
-        modificationRecord += (halfBytes==5)"05":"03";
+        modificationRecord += (halfBytes==5)?"05":"03";
         modificationRecord += '\n';
 
         return objcode;
@@ -153,9 +153,9 @@ string createObjectCodeFormat34(){
     }
   }
   else if(getFlagFormat(operand)=='@'){
-    string tempOperand = stringHexToInt(operand.substr(1,operand.length()-1));
+    string tempOperand = operand.substr(1,operand.length()-1);
     if(tempOperand.substr(tempOperand.length()-2,2)==",X" || SYMTAB[tempOperand].exists=='n'){//Error handling for Indirect with index based
-      writeData = "Line: "+to_string(lineNumber)
+      writeData = "Line: "+to_string(lineNumber);
       writeData += (SYMTAB[tempOperand].exists=='n')?" Symbol doesn't exists":" Index based addressing not supported with Indirect addressing";
       writeToFile(errorFile,writeData);
       objcode = intToStringHex(stringHexToInt(OPTAB[getRealOpcode(opcode)].opcode)+2,2);
@@ -165,7 +165,7 @@ string createObjectCodeFormat34(){
 
     int operandAddress = stringHexToInt(SYMTAB[tempOperand].address);
     program_counter = address;
-    program_counter += (halfBytes==5)4:3;
+    program_counter += (halfBytes==5)?4:3;
 
     if(halfBytes==3){
       int relativeAddress = operandAddress - program_counter;
@@ -193,7 +193,7 @@ string createObjectCodeFormat34(){
 
         /*add modifacation record here*/
         modificationRecord += "M^" + intToStringHex(address+1,6);
-        modificationRecord += (halfBytes==5)"05":"03";
+        modificationRecord += (halfBytes==5)?"05":"03";
         modificationRecord += '\n';
 
         return objcode;
@@ -206,14 +206,14 @@ string createObjectCodeFormat34(){
 
       /*add modifacation record here*/
       modificationRecord += "M^" + intToStringHex(address+1,6);
-      modificationRecord += (halfBytes==5)"05":"03";
+      modificationRecord += (halfBytes==5)?"05":"03";
       modificationRecord += '\n';
 
       return objcode;
     }
 
-    writeData = "Line: "+to_string(lineNumber)
-    writeData += "Can't fit into program counter based or base register based addressing."
+    writeData = "Line: "+to_string(lineNumber);
+    writeData += "Can't fit into program counter based or base register based addressing.";
     writeToFile(errorFile,writeData);
     objcode = intToStringHex(stringHexToInt(OPTAB[getRealOpcode(opcode)].opcode)+2,2);
     objcode += (halfBytes==5)?"100000":"0000";
@@ -229,8 +229,8 @@ string createObjectCodeFormat34(){
     }
 
     if(SYMTAB[tempOperand].exists=='n'){
-      writeData = "Line: "+to_string(lineNumber)
-      writeData += "Symbol doesn't exists."
+      writeData = "Line: "+to_string(lineNumber);
+      writeData += "Symbol doesn't exists.";
       writeToFile(errorFile,writeData);
 
       objcode = intToStringHex(stringHexToInt(OPTAB[getRealOpcode(opcode)].opcode)+3,2);
@@ -241,7 +241,7 @@ string createObjectCodeFormat34(){
 
     int operandAddress = stringHexToInt(SYMTAB[tempOperand].address);
     program_counter = address;
-    program_counter += (halfBytes==5)4:3;
+    program_counter += (halfBytes==5)?4:3;
 
     if(halfBytes==3){
       int relativeAddress = operandAddress - program_counter;
@@ -269,7 +269,7 @@ string createObjectCodeFormat34(){
 
         /*add modifacation record here*/
         modificationRecord += "M^" + intToStringHex(address+1,6);
-        modificationRecord += (halfBytes==5)"05":"03";
+        modificationRecord += (halfBytes==5)?"05":"03";
         modificationRecord += '\n';
 
         return objcode;
@@ -282,14 +282,14 @@ string createObjectCodeFormat34(){
 
       /*add modifacation record here*/
       modificationRecord += "M^" + intToStringHex(address+1,6);
-      modificationRecord += (halfBytes==5)"05":"03";
+      modificationRecord += (halfBytes==5)?"05":"03";
       modificationRecord += '\n';
 
       return objcode;
     }
 
-    writeData = "Line: "+to_string(lineNumber)
-    writeData += "Can't fit into program counter based or base register based addressing."
+    writeData = "Line: "+to_string(lineNumber);
+    writeData += "Can't fit into program counter based or base register based addressing.";
     writeToFile(errorFile,writeData);
     objcode = intToStringHex(stringHexToInt(OPTAB[getRealOpcode(opcode)].opcode)+3,2);
     objcode += (halfBytes==5)?(intToStringHex(xbpe+1,1)+"00"):intToStringHex(xbpe,1);
@@ -300,11 +300,12 @@ string createObjectCodeFormat34(){
 }
 
 void pass2(){
+  string tempBuffer;
   intermediateFile.open("intermediate_file.txt");//begin
-  getline(readFile, fileLine); // Discard heading line
-  objectFile.open('object_file.txt');
+  getline(intermediateFile, tempBuffer); // Discard heading line
+  objectFile.open("object_file.txt");
   ListingFile.open("listing_file.txt");
-  writeToFile(listing_file,"Line\tAddress\tLabel\tOPCODE\tOPERAND\tObject Code\tComment");
+  writeToFile(ListingFile,"Line\tAddress\tLabel\tOPCODE\tOPERAND\tObject Code\tComment");
   errorFile.open("error_file.txt",fstream::app);
   writeToFile(errorFile,"\n\n************PASS2************");
 
@@ -347,8 +348,8 @@ void pass2(){
           objectCode = OPTAB[getRealOpcode(opcode)].opcode;
         }
         else if(OPTAB[getRealOpcode(opcode)].format==2){
-          operand1 = operand1.substr(0,s.find(','));
-          operand2 = operand2.substr(s.find(',')+1,s.length()-s.find(',') -1 );
+          operand1 = operand.substr(0,operand.find(','));
+          operand2 = operand.substr(operand.find(',')+1,operand.length()-operand.find(',') -1 );
 
           if(operand2==operand){//If not two operand i.e. a
             if(getRealOpcode(opcode)=="SVC"){
@@ -502,3 +503,9 @@ void pass2(){
 2)modificationRecord
 3)LTORG
 */
+
+int main(){
+  load_tables();
+  pass1();
+  pass2();
+}
