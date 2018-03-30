@@ -160,5 +160,3 @@ char getFlagFormat(string data){
   }
   return ' ';
 }
-
-void getNextLiteral(string& value, string& address)

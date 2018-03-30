@@ -8,7 +8,7 @@ using namespace std;
 bool error_flag=false;
 int program_length;
 
-void handle_LTORG(string& litPrefix, int& lineNumberDelta,int lineNumber,int& LOCCTR, int& lastDeltaLOCCTR);{
+void handle_LTORG(string& litPrefix, int& lineNumberDelta,int lineNumber,int& LOCCTR, int& lastDeltaLOCCTR){
   string litAddress,litValue;
   int saveLineNumber = lineNumber;
   litPrefix = "";

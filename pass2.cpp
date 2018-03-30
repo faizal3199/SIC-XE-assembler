@@ -244,8 +244,8 @@ string createObjectCodeFormat34(){
       return objcode;
     }
 
-    int operandAddress
-    if(getFlagFormat=='='){
+    int operandAddress;
+    if(getFlagFormat(operand)=='='){
       operandAddress = stringHexToInt(LITTAB[tempOperand].address);
     }
     else{
