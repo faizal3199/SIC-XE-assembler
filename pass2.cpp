@@ -75,14 +75,23 @@ string createObjectCodeFormat34(){
     }
 
     string tempOperand = operand.substr(1,operand.length()-1);
-    int immediateValue;
     if(if_all_num(tempOperand)){
-      immediateValue = stringHexToInt(tempOperand);
+      int immediateValue = stringHexToInt(tempOperand);
+      /*Process Immediate value*/
+      if(immediateValue>=(1<<4*halfBytes)){
+        writeData = "Line: "+to_string(lineNumber)+" Immediate value exceeds format limit";
+        writeToFile(errorFile,writeData);
+        objcode = intToStringHex(stringHexToInt(OPTAB[getRealOpcode(opcode)].opcode)+1,2);
+        objcode += (halfBytes==5)?"100000":"0000";
+      }
+      else{
+        objcode = intToStringHex(stringHexToInt(OPTAB[getRealOpcode(opcode)].opcode)+1,2);
+        objcode += (halfBytes==5)?'1':'0';
+        objcode += intToStringHex(immediateValue,halfBytes);
+      }
+      return objcode;
     }
-    else if(SYMTAB[tempOperand].exists=='y') {
-      immediateValue = stringHexToInt(SYMTAB[tempOperand].address);
-    }
-    else{
+    else if(SYMTAB[tempOperand].exists=='n') {
       writeData = "Line: "+to_string(lineNumber)
       writeData += "Symbol doesn't exists. Found " + tempOperand;
       writeToFile(errorFile,writeData);
@@ -90,19 +99,58 @@ string createObjectCodeFormat34(){
       objcode += (halfBytes==5)?"100000":"0000";
       return objcode;
     }
-    /*Process Immediate value*/
-    if(immediateValue>=(1<<4*halfBytes)){
-      writeData = "Line: "+to_string(lineNumber)+" Immediate value exceeds format limit";
-      writeToFile(errorFile,writeData);
-      objcode = intToStringHex(stringHexToInt(OPTAB[getRealOpcode(opcode)].opcode)+1,2);
-      objcode += (halfBytes==5)?"100000":"0000";
-    }
     else{
-      objcode = intToStringHex(stringHexToInt(OPTAB[getRealOpcode(opcode)].opcode)+1,2);
-      objcode += (halfBytes==5)?'1':'0';
-      objcode += intToStringHex(immediateValue,halfBytes);
+      int operandAddress = stringHexToInt(SYMTAB[tempOperand].address);
+
+      /*Process Immediate symbol value*/
+      if(halfBytes==5){/*If format 4*/
+        objcode = intToStringHex(stringHexToInt(OPTAB[getRealOpcode(opcode)].opcode)+1,2);
+        objcode += '1';
+        objcode += intToStringHex(operandAddress,halfBytes);
+
+        /*add modifacation record here*/
+        modificationRecord += "M^" + intToStringHex(address+1,6);
+        modificationRecord += (halfBytes==5)"05":"03";
+        modificationRecord += '\n';
+
+        return objcode;
+      }
+
+      /*Handle format 3*/
+      program_counter = address;
+      program_counter += (halfBytes==5)4:3;
+      int relativeAddress = operandAddress - program_counter;
+
+      if(relativeAddress>=(-2048) && relativeAddress<=2047){
+        objcode = intToStringHex(stringHexToInt(OPTAB[getRealOpcode(opcode)].opcode)+1,2);
+        objcode += '2';
+        objcode += intToStringHex(relativeAddress,halfBytes);
+        return objcode;
+      }
+
+      if(!nobase){
+        relativeAddress = operandAddress - base_register_value;
+        if(relativeAddress>=0 && relativeAddress<=4095){
+          objcode = intToStringHex(stringHexToInt(OPTAB[getRealOpcode(opcode)].opcode)+1,2);
+          objcode += '4';
+          objcode += intToStringHex(relativeAddress,halfBytes);
+          return objcode;
+        }
+      }
+
+      if(operandAddress<=4095){
+        objcode = intToStringHex(stringHexToInt(OPTAB[getRealOpcode(opcode)].opcode)+1,2);
+        objcode += '0';
+        objcode += intToStringHex(operandAddress,halfBytes);
+
+        /*add modifacation record here*/
+        modificationRecord += "M^" + intToStringHex(address+1,6);
+        modificationRecord += (halfBytes==5)"05":"03";
+        modificationRecord += '\n';
+
+        return objcode;
+      }
     }
-    return objcode;
   }
   else if(getFlagFormat(operand)=='@'){
     string tempOperand = stringHexToInt(operand.substr(1,operand.length()-1));
@@ -116,7 +164,7 @@ string createObjectCodeFormat34(){
     }
 
     int operandAddress = stringHexToInt(SYMTAB[tempOperand].address);
-    program_counter = stringHexToInt(address);
+    program_counter = address;
     program_counter += (halfBytes==5)4:3;
 
     if(halfBytes==3){
@@ -142,6 +190,12 @@ string createObjectCodeFormat34(){
         objcode = intToStringHex(stringHexToInt(OPTAB[getRealOpcode(opcode)].opcode)+2,2);
         objcode += '0';
         objcode += intToStringHex(operandAddress,halfBytes);
+
+        /*add modifacation record here*/
+        modificationRecord += "M^" + intToStringHex(address+1,6);
+        modificationRecord += (halfBytes==5)"05":"03";
+        modificationRecord += '\n';
+
         return objcode;
       }
     }
@@ -149,6 +203,12 @@ string createObjectCodeFormat34(){
       objcode = intToStringHex(stringHexToInt(OPTAB[getRealOpcode(opcode)].opcode)+2,2);
       objcode += '1';
       objcode += intToStringHex(operandAddress,halfBytes);
+
+      /*add modifacation record here*/
+      modificationRecord += "M^" + intToStringHex(address+1,6);
+      modificationRecord += (halfBytes==5)"05":"03";
+      modificationRecord += '\n';
+
       return objcode;
     }
 
@@ -180,7 +240,7 @@ string createObjectCodeFormat34(){
     }
 
     int operandAddress = stringHexToInt(SYMTAB[tempOperand].address);
-    program_counter = stringHexToInt(address);
+    program_counter = address;
     program_counter += (halfBytes==5)4:3;
 
     if(halfBytes==3){
@@ -206,6 +266,12 @@ string createObjectCodeFormat34(){
         objcode = intToStringHex(stringHexToInt(OPTAB[getRealOpcode(opcode)].opcode)+3,2);
         objcode += intToStringHex(xbpe,1);
         objcode += intToStringHex(operandAddress,halfBytes);
+
+        /*add modifacation record here*/
+        modificationRecord += "M^" + intToStringHex(address+1,6);
+        modificationRecord += (halfBytes==5)"05":"03";
+        modificationRecord += '\n';
+
         return objcode;
       }
     }
@@ -213,6 +279,12 @@ string createObjectCodeFormat34(){
       objcode = intToStringHex(stringHexToInt(OPTAB[getRealOpcode(opcode)].opcode)+3,2);
       objcode += intToStringHex(xbpe+1,1);
       objcode += intToStringHex(operandAddress,halfBytes);
+
+      /*add modifacation record here*/
+      modificationRecord += "M^" + intToStringHex(address+1,6);
+      modificationRecord += (halfBytes==5)"05":"03";
+      modificationRecord += '\n';
+
       return objcode;
     }
 
@@ -240,6 +312,7 @@ void pass2(){
   objectCode = "";
   currentTextRecordLength=0;
   currentRecord = "";
+  modificationRecord = "";
   nobase = true;
 
   readIntermediateFile(intermediateFile,isComment,lineNumber,address,label,opcode,operand,comment);
