@@ -75,7 +75,7 @@ string createObjectCodeFormat34(){
 
     string tempOperand = operand.substr(1,operand.length()-1);
     if(if_all_num(tempOperand)){
-      int immediateValue = stringHexToInt(tempOperand);
+      int immediateValue = stoi(tempOperand);
       /*Process Immediate value*/
       if(immediateValue>=(1<<4*halfBytes)){
         writeData = "Line: "+to_string(lineNumber)+" Immediate value exceeds format limit";
@@ -337,7 +337,7 @@ void pass2(){
   writeToFile(objectFile,writeData);
 
   readIntermediateFile(intermediateFile,isComment,lineNumber,address,label,opcode,operand,comment);
-  writeToFile(objectFile,"T^",false);
+  // writeToFile(objectFile,"T^",false); //Write record only at address start
   currentTextRecordLength  = 0;
 
   while(opcode!="END"){
@@ -430,23 +430,22 @@ void pass2(){
       //Write to text record if any generated
       if(objectCode != ""){
         if(currentRecord.length()==0){
-          writeData = intToStringHex(address,6);
-          writeToFile(objectFile,writeData);
+          writeData = "T^" + intToStringHex(address,6) + '^';
+          writeToFile(objectFile,writeData,false);
         }
         //What is objectCode length > 60
         if((currentRecord + objectCode).length()>60){
           //Write current record
-          writeData = intToStringHex(currentRecord.length(),2) + currentRecord;
+          writeData = intToStringHex(currentRecord.length(),2) + '^' + currentRecord;
           writeToFile(objectFile,currentRecord);
 
           //Initialize new text currentRecord
           currentRecord = "";
-          writeData = "T^" + intToStringHex(address,6);
-          writeToFile(objectFile,writeData);
+          writeData = "T^" + intToStringHex(address,6) + '^';
+          writeToFile(objectFile,writeData,false);
         }
-        else{
-          currentRecord += objectCode;
-        }
+
+        currentRecord += objectCode;
       }
       else{
         /*Assembler directive which doesn't result in address genrenation*/
@@ -454,10 +453,11 @@ void pass2(){
           /*DO nothing*/
         }
         else{
-          //Write current record
-          writeData = intToStringHex(currentRecord.length(),2) + currentRecord;
-          writeToFile(objectFile,currentRecord);
-
+          //Write current record if exists
+          if(currentRecord.length()>0){
+            writeData = intToStringHex(currentRecord.length(),2) + '^' + currentRecord;
+            writeToFile(objectFile,currentRecord);
+          }
           currentRecord = "";
         }
       }
@@ -470,12 +470,15 @@ void pass2(){
     readIntermediateFile(intermediateFile,isComment,lineNumber,address,label,opcode,operand,comment);//Read next line
   }//while opcode not end
   if(currentRecord.length()>0){//Write last text record
-    writeData = intToStringHex(currentRecord.length(),2) + currentRecord;
+    writeData = intToStringHex(currentRecord.length(),2) + '^' + currentRecord;
     writeToFile(objectFile,currentRecord);
+    currentRecord = "";
   }
 
+  writeToFile(objectFile,modificationRecord);//Write modification record
+
   //Write end record
-  if(operand==""){//In no operand of END
+  if(operand==""){//If no operand of END
     writeData = "E^" + intToStringHex(startAddress,6);
   }
   else{//Make operand on end firstExecutableAddress
@@ -493,8 +496,6 @@ void pass2(){
   }
   writeData = to_string(lineNumber) + "\t" + intToStringHex(address) + "\t" + label + "\t" + opcode + "\t" + operand + "\t" + "" +"\t" + comment;
   writeToFile(ListingFile,writeData);
-
-  writeToFile(objectFile,modificationRecord);//Write modification record
 }//Function end
 
 /*TODO
