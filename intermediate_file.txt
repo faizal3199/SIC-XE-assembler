@@ -1,14 +1,55 @@
 Line	Address	Label	OPCODE	OPERAND	Comment
-5	. My test code
-10	01000	TEST	START	1000	
-15	01000		LDA	#5	load value 5 into register a
-20	01003		STA	ALPHA	store in ALPHA
-25	01006		COMPR	A,B	Compare register A and B
-30	01008		LDA	#90	load ascii code for 'z' into reg a
-35	0100B		STCH	C1	store in character variable C1
-40	.
-45	.
-50	.
-55	0100E	ALPHA	RESW	1	ONE-WORD variable
-60	01011	C1	RESB	1	one byte variable
-65	01012		END	TEST	
+5	. TEST PROGRAM
+10	00000	COPY	START	0	Comment here
+15	00000	FIRST	STL	RETADR	Comment here
+20	00003		LDB	#LENGTH	Comment here
+25	00006		BASE	LENGTH	Comment here
+30	00006	CLOOP	+JSUB	RDREC	Comment here
+35	0000A		LDA	LENGTH	Comment here
+40	0000D		COMP	#0	Comment here
+45	00010		JEQ	ENDFIL	Comment here
+50	00013		+JSUB	WRREC	Comment here
+55	00017		J	CLOOP	Comment here
+60	0001A	ENDFIL	LDA	EOF	Comment here
+65	0001D		STA	BUFFER	Comment here
+70	00020		LDA	#3	Comment here
+75	00023		STA	LENGTH	Comment here
+80	00026		+JSUB	WRREC	Comment here
+85	0002A		J	@RETADR	Comment here
+90	0002D	EOF	BYTE	C'EOF'	Comment here
+95	00030	RETADR	RESW	1	Comment here
+100	00033	LENGTH	RESW	1	Comment here
+105	00036	BUFFER	RESB	4096	Comment here
+110	.
+115	.   RDREC SUBROUTINE
+120	.
+125	01036	RDREC	CLEAR	X	Comment here
+130	01038		CLEAR	A	Comment here
+135	0103A		CLEAR	S	Comment here
+140	0103C		+LDT	#4096	Comment here
+145	01040	RLOOP	TD	INPUT	Comment here
+150	01043		JEQ	RLOOP	Comment here
+155	01046		RD	INPUT	Comment here
+160	01049		COMPR	A,S	Comment here
+165	0104B		JEQ	EXIT	Comment here
+170	0104E		STCH	BUFFER,X	Comment here
+175	01051		TIXR	T	Comment here
+180	01053		JLT	RLOOP	Comment here
+185	01056		FIX	 	Adding to test format 1
+190	01056	EXIT	STX	LENGTH	Comment here
+195	01059		RSUB	 	Comment here
+200	0105C	INPUT	BYTE	X'F1'	Comment here
+205	.
+210	.   WRREC SUBROUTINE
+215	.
+220	0105D	WRREC	CLEAR	X	Comment here
+225	0105F		LDT	LENGTH	Comment here
+230	01062	WLOOP	TD	OUTPUT	Comment here
+235	01065		JEQ	WLOOP	Comment here
+240	01068		LDCH	BUFFER,X	Comment here
+245	0106B		WD	OUTPUT	Comment here
+250	0106E		TIXR	T	Comment here
+255	01070		JLT	WLOOP	Comment here
+260	01073		RSUB	 	Comment here
+265	01076	OUTPUT	BYTE	X'05'	Comment here
+270	01077		END	FIRST	Comment here

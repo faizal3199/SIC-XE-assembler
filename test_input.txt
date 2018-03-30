@@ -34,6 +34,7 @@ RLOOP   TD      INPUT Comment here
         STCH    BUFFER,X Comment here
         TIXR    T Comment here
         JLT     RLOOP Comment here
+        FIX   Adding to test format 1
 EXIT    STX     LENGTH Comment here
         RSUB Comment here
 INPUT   BYTE    X'F1' Comment here

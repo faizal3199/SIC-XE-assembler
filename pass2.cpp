@@ -22,7 +22,7 @@ bool nobase;
 string readTillTab(string data,int& index){
   string tempBuffer = "";
 
-  while(data[index] != '\t'){
+  while(index<data.length() && data[index] != '\t'){
     tempBuffer += data[index];
     index++;
   }
@@ -44,7 +44,6 @@ void readIntermediateFile(ifstream& readFile,bool& isComment, int& lineNumber, i
     return;
   }
 
-  lineNumber = stoi(readTillTab(fileLine,index));
   address = stringHexToInt(readTillTab(fileLine,index));
   label = readTillTab(fileLine,index);
   opcode = readTillTab(fileLine,index);
@@ -305,7 +304,7 @@ void pass2(){
   getline(intermediateFile, tempBuffer); // Discard heading line
   objectFile.open("object_file.txt");
   ListingFile.open("listing_file.txt");
-  writeToFile(ListingFile,"Line\tAddress\tLabel\tOPCODE\tOPERAND\tObject Code\tComment");
+  writeToFile(ListingFile,"Line\tAddress\tLabel\tOPCODE\tOPERAND\tObjectCode\tComment");
   errorFile.open("error_file.txt",fstream::app);
   writeToFile(errorFile,"\n\n************PASS2************");
 
@@ -318,9 +317,9 @@ void pass2(){
 
   readIntermediateFile(intermediateFile,isComment,lineNumber,address,label,opcode,operand,comment);
   while(isComment){//Handle with previous comments
-    readIntermediateFile(intermediateFile,isComment,lineNumber,address,label,opcode,operand,comment);
     writeData = to_string(lineNumber) + "\t" + comment;
     writeToFile(ListingFile,writeData);
+    readIntermediateFile(intermediateFile,isComment,lineNumber,address,label,opcode,operand,comment);
   }
 
   if(opcode=="START"){

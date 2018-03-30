@@ -86,7 +86,7 @@ void pass1(){
             LOCCTR += 1;
             lastDeltaLOCCTR += 1;
           }
-          if(OPTAB[getRealOpcode(opcode)].opcode=="RSUB"){
+          if(getRealOpcode(opcode)=="RSUB"){
             operand = " ";
           }
           else{
@@ -139,6 +139,9 @@ void pass1(){
         //   writeData = "Line: "+to_string(line)+" : Invalid operand for BYTE. Found " + operand;
         //   writeToFile(errorFile,writeData);
         // }
+      }
+      else if(opcode=="BASE"){
+        readFirstNonWhiteSpace(fileLine,index,statusCode,operand);
       }
       else{
         readFirstNonWhiteSpace(fileLine,index,statusCode,operand);

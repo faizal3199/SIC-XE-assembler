@@ -167,6 +167,7 @@ void readByteOperand(string line,int& index,bool& status,string& data){
       index++;
     }
     data += identifier;
+    index++;//Shift to next of identifier
   }
   else{
     while(index<line.length()&&!checkWhiteSpace(line[index])){//In no whitespace then data
