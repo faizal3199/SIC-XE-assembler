@@ -24,7 +24,7 @@ void pass1(){
 
   bool statusCode;
   string label,opcode,operand,comment;
-  string tempOpcode;
+  string tempOperand;
 
   int startAddress,LOCCTR,lineNumber,lastDeltaLOCCTR;
   lineNumber = 0;
@@ -92,8 +92,8 @@ void pass1(){
           else{
             readFirstNonWhiteSpace(fileLine,index,statusCode,operand);
             if(operand[operand.length()-1] == ','){
-              readFirstNonWhiteSpace(fileLine,index,statusCode,tempOpcode);
-              opcode += tempOpcode;
+              readFirstNonWhiteSpace(fileLine,index,statusCode,tempOperand);
+              operand += tempOperand;
             }
           }
         }
@@ -107,8 +107,8 @@ void pass1(){
           lastDeltaLOCCTR += OPTAB[getRealOpcode(opcode)].format;
           readFirstNonWhiteSpace(fileLine,index,statusCode,operand);
           if(operand[operand.length()-1] == ','){
-            readFirstNonWhiteSpace(fileLine,index,statusCode,tempOpcode);
-            opcode += tempOpcode;
+            readFirstNonWhiteSpace(fileLine,index,statusCode,tempOperand);
+            operand += tempOperand;
           }
         }
       }
