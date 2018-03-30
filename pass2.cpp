@@ -108,7 +108,7 @@ string createObjectCodeFormat34(){
         objcode += intToStringHex(operandAddress,halfBytes);
 
         /*add modifacation record here*/
-        modificationRecord += "M^" + intToStringHex(address+1,6);
+        modificationRecord += "M^" + intToStringHex(address+1,6) + '^';
         modificationRecord += (halfBytes==5)?"05":"03";
         modificationRecord += '\n';
 
@@ -143,7 +143,7 @@ string createObjectCodeFormat34(){
         objcode += intToStringHex(operandAddress,halfBytes);
 
         /*add modifacation record here*/
-        modificationRecord += "M^" + intToStringHex(address+1,6);
+        modificationRecord += "M^" + intToStringHex(address+1,6) + '^';
         modificationRecord += (halfBytes==5)?"05":"03";
         modificationRecord += '\n';
 
@@ -191,7 +191,7 @@ string createObjectCodeFormat34(){
         objcode += intToStringHex(operandAddress,halfBytes);
 
         /*add modifacation record here*/
-        modificationRecord += "M^" + intToStringHex(address+1,6);
+        modificationRecord += "M^" + intToStringHex(address+1,6) + '^';
         modificationRecord += (halfBytes==5)?"05":"03";
         modificationRecord += '\n';
 
@@ -204,7 +204,7 @@ string createObjectCodeFormat34(){
       objcode += intToStringHex(operandAddress,halfBytes);
 
       /*add modifacation record here*/
-      modificationRecord += "M^" + intToStringHex(address+1,6);
+      modificationRecord += "M^" + intToStringHex(address+1,6) + '^';
       modificationRecord += (halfBytes==5)?"05":"03";
       modificationRecord += '\n';
 
@@ -267,7 +267,7 @@ string createObjectCodeFormat34(){
         objcode += intToStringHex(operandAddress,halfBytes);
 
         /*add modifacation record here*/
-        modificationRecord += "M^" + intToStringHex(address+1,6);
+        modificationRecord += "M^" + intToStringHex(address+1,6) + '^';
         modificationRecord += (halfBytes==5)?"05":"03";
         modificationRecord += '\n';
 
@@ -280,7 +280,7 @@ string createObjectCodeFormat34(){
       objcode += intToStringHex(operandAddress,halfBytes);
 
       /*add modifacation record here*/
-      modificationRecord += "M^" + intToStringHex(address+1,6);
+      modificationRecord += "M^" + intToStringHex(address+1,6) + '^';
       modificationRecord += (halfBytes==5)?"05":"03";
       modificationRecord += '\n';
 
@@ -436,7 +436,7 @@ void pass2(){
         //What is objectCode length > 60
         if((currentRecord + objectCode).length()>60){
           //Write current record
-          writeData = intToStringHex(currentRecord.length(),2) + '^' + currentRecord;
+          writeData = intToStringHex(currentRecord.length()/2,2) + '^' + currentRecord;
           writeToFile(objectFile,writeData);
 
           //Initialize new text currentRecord
@@ -455,7 +455,7 @@ void pass2(){
         else{
           //Write current record if exists
           if(currentRecord.length()>0){
-            writeData = intToStringHex(currentRecord.length(),2) + '^' + currentRecord;
+            writeData = intToStringHex(currentRecord.length()/2,2) + '^' + currentRecord;
             writeToFile(objectFile,writeData);
           }
           currentRecord = "";
@@ -470,7 +470,7 @@ void pass2(){
     readIntermediateFile(intermediateFile,isComment,lineNumber,address,label,opcode,operand,comment);//Read next line
   }//while opcode not end
   if(currentRecord.length()>0){//Write last text record
-    writeData = intToStringHex(currentRecord.length(),2) + '^' + currentRecord;
+    writeData = intToStringHex(currentRecord.length()/2,2) + '^' + currentRecord;
     writeToFile(objectFile,writeData);
     currentRecord = "";
   }
