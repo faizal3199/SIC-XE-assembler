@@ -94,8 +94,8 @@ string createObjectCodeFormat34(){
       return objcode;
     }
     else if(SYMTAB[tempOperand].exists=='n') {
-      writeData = "Line: "+to_string(lineNumber);
-      writeData += "Symbol doesn't exists. Found " + tempOperand;
+      writeData = "Line "+to_string(lineNumber);
+      writeData += " : Symbol doesn't exists. Found " + tempOperand;
       writeToFile(errorFile,writeData);
       objcode = intToStringHex(stringHexToInt(OPTAB[getRealOpcode(opcode)].opcode)+1,2);
       objcode += (halfBytes==5)?"100000":"0000";
@@ -157,8 +157,8 @@ string createObjectCodeFormat34(){
   else if(getFlagFormat(operand)=='@'){
     string tempOperand = operand.substr(1,operand.length()-1);
     if(tempOperand.substr(tempOperand.length()-2,2)==",X" || SYMTAB[tempOperand].exists=='n'){//Error handling for Indirect with index based
-      writeData = "Line: "+to_string(lineNumber);
-      writeData += (SYMTAB[tempOperand].exists=='n')?" Symbol doesn't exists":" Index based addressing not supported with Indirect addressing";
+      writeData = "Line "+to_string(lineNumber);
+      writeData += (SYMTAB[tempOperand].exists=='n')?": Symbol doesn't exists":" Index based addressing not supported with Indirect addressing";
       writeToFile(errorFile,writeData);
       objcode = intToStringHex(stringHexToInt(OPTAB[getRealOpcode(opcode)].opcode)+2,2);
       objcode += (halfBytes==5)?"100000":"0000";
@@ -234,8 +234,7 @@ string createObjectCodeFormat34(){
     }
 
     if(SYMTAB[tempOperand].exists=='n'){
-      writeData = "Line: "+to_string(lineNumber);
-      writeData += "Symbol doesn't exists.";
+      writeData = "Line "+to_string(lineNumber)+" : Symbol doesn't exists. Found " + tempOperand;
       writeToFile(errorFile,writeData);
 
       objcode = intToStringHex(stringHexToInt(OPTAB[getRealOpcode(opcode)].opcode)+3,2);
@@ -370,7 +369,7 @@ void writeEndRecord(bool write=true){
     int firstExecutableAddress;
     if(SYMTAB[operand].exists=='n'){
       firstExecutableAddress = startAddress;
-      writeData = "Line "+to_string(lineNumber)+": Symbol doesn't exists. Found " + operand;
+      writeData = "Line "+to_string(lineNumber)+" : Symbol doesn't exists. Found " + operand;
       writeToFile(errorFile,writeData);
     }
     else{
@@ -495,7 +494,7 @@ void pass2(){
           nobase = false;
         }
         else{
-          writeData = "Line: "+to_string(lineNumber)+" Symbol doesn't exists";
+          writeData = "Line "+to_string(lineNumber)+" : Symbol doesn't exists. Found " + operand;
           writeToFile(errorFile,writeData);
         }
         objectCode = "";

@@ -10,7 +10,6 @@ int program_length;
 
 void handle_LTORG(string& litPrefix, int& lineNumberDelta,int lineNumber,int& LOCCTR, int& lastDeltaLOCCTR){
   string litAddress,litValue;
-  int saveLineNumber = lineNumber;
   litPrefix = "";
   for(auto const& it: LITTAB){
     litAddress = it.second.address;
@@ -20,6 +19,7 @@ void handle_LTORG(string& litPrefix, int& lineNumberDelta,int lineNumber,int& LO
     }
     else{
       lineNumber += 5;
+      lineNumberDelta += 5;
       LITTAB[it.first].address = intToStringHex(LOCCTR);
       litPrefix += "\n" + to_string(lineNumber) + "\t" + intToStringHex(LOCCTR) + "\t" + "*" + "\t" + "="+litValue + "\t" + " " + "\t" + " ";
 
@@ -33,7 +33,6 @@ void handle_LTORG(string& litPrefix, int& lineNumberDelta,int lineNumber,int& LO
       }
     }
   }
-  lineNumberDelta = saveLineNumber - lineNumber;
 }
 void pass1(){
   ifstream sourceFile;//begin
@@ -182,6 +181,7 @@ void pass1(){
         readFirstNonWhiteSpace(fileLine,index,statusCode,operand);
       }
       else if(opcode=="LTORG"){
+        operand = " ";
         handle_LTORG(writeDataSuffix,lineNumberDelta,lineNumber,LOCCTR,lastDeltaLOCCTR);
       }
       else{
