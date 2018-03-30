@@ -437,7 +437,7 @@ void pass2(){
         if((currentRecord + objectCode).length()>60){
           //Write current record
           writeData = intToStringHex(currentRecord.length(),2) + '^' + currentRecord;
-          writeToFile(objectFile,currentRecord);
+          writeToFile(objectFile,writeData);
 
           //Initialize new text currentRecord
           currentRecord = "";
@@ -456,7 +456,7 @@ void pass2(){
           //Write current record if exists
           if(currentRecord.length()>0){
             writeData = intToStringHex(currentRecord.length(),2) + '^' + currentRecord;
-            writeToFile(objectFile,currentRecord);
+            writeToFile(objectFile,writeData);
           }
           currentRecord = "";
         }
@@ -471,11 +471,11 @@ void pass2(){
   }//while opcode not end
   if(currentRecord.length()>0){//Write last text record
     writeData = intToStringHex(currentRecord.length(),2) + '^' + currentRecord;
-    writeToFile(objectFile,currentRecord);
+    writeToFile(objectFile,writeData);
     currentRecord = "";
   }
 
-  writeToFile(objectFile,modificationRecord);//Write modification record
+  writeToFile(objectFile,modificationRecord,false);//Write modification record
 
   //Write end record
   if(operand==""){//If no operand of END
