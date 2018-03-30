@@ -315,7 +315,29 @@ void pass2(){
       }
       else if(opcode=="WORD"){
         objectCode = intToStringHex(stoi(operand),6);
-      }else{
+      }
+      else if(opcode=="BASE"){
+        if(SYMTAB[operand].exists=='y'){
+          base_register_value = stringHexToInt(SYMTAB[operand].address);
+          nobase = false;
+        }
+        else{
+          writeData = "Line: "+to_string(lineNumber)+" Symbol doesn't exists";
+          writeToFile(errorFile,writeData);
+        }
+        objectCode = "";
+      }
+      else if(opcode=="NOBASE"){
+        if(nobase){//check if assembler was using base addressing
+          writeData = "Line "+to_string(lineNumber)+": Assembler wasn't using base addressing";
+          writeToFile(errorFile,writeData);
+        }
+        else{
+          nobase = true;
+        }
+        objectCode = "";
+      }
+      else{
         objectCode = "";
       }
       //Write to text record if any generated
