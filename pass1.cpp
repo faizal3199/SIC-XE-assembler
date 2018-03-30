@@ -99,6 +99,8 @@ void pass1(){
         }
         else if(OPTAB[getRealOpcode(opcode)].format==1){
           operand = " ";
+          LOCCTR += OPTAB[getRealOpcode(opcode)].format;
+          lastDeltaLOCCTR += OPTAB[getRealOpcode(opcode)].format;
         }
         else{
           LOCCTR += OPTAB[getRealOpcode(opcode)].format;

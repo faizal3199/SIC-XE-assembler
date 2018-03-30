@@ -36,20 +36,20 @@ Line	Address	Label	OPCODE	OPERAND	Comment
 175	01051		TIXR	T	Comment here
 180	01053		JLT	RLOOP	Comment here
 185	01056		FIX	 	Adding to test format 1
-190	01056	EXIT	STX	LENGTH	Comment here
-195	01059		RSUB	 	Comment here
-200	0105C	INPUT	BYTE	X'F1'	Comment here
+190	01057	EXIT	STX	LENGTH	Comment here
+195	0105A		RSUB	 	Comment here
+200	0105D	INPUT	BYTE	X'F1'	Comment here
 205	.
 210	.   WRREC SUBROUTINE
 215	.
-220	0105D	WRREC	CLEAR	X	Comment here
-225	0105F		LDT	LENGTH	Comment here
-230	01062	WLOOP	TD	OUTPUT	Comment here
-235	01065		JEQ	WLOOP	Comment here
-240	01068		LDCH	BUFFER,X	Comment here
-245	0106B		WD	OUTPUT	Comment here
-250	0106E		TIXR	T	Comment here
-255	01070		JLT	WLOOP	Comment here
-260	01073		RSUB	 	Comment here
-265	01076	OUTPUT	BYTE	X'05'	Comment here
-270	01077		END	FIRST	Comment here
+220	0105E	WRREC	CLEAR	X	Comment here
+225	01060		LDT	LENGTH	Comment here
+230	01063	WLOOP	TD	OUTPUT	Comment here
+235	01066		JEQ	WLOOP	Comment here
+240	01069		LDCH	BUFFER,X	Comment here
+245	0106C		WD	OUTPUT	Comment here
+250	0106F		TIXR	T	Comment here
+255	01071		JLT	WLOOP	Comment here
+260	01074		RSUB	 	Comment here
+265	01077	OUTPUT	BYTE	X'05'	Comment here
+270	01078		END	FIRST	Comment here
