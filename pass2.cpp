@@ -222,15 +222,83 @@ string createObjectCodeFormat34(){
 
     return objcode;
   }
+  else if(getFlagFormat(operand)=='='){//Literals
+    string tempOperand = operand.substr(1,operand.length()-1);
+
+    if(LITTAB[tempOperand].exists=='n'){
+      writeData = "Line "+to_string(lineNumber)+" : Symbol doesn't exists. Found " + tempOperand;
+      writeToFile(errorFile,writeData);
+
+      objcode = intToStringHex(stringHexToInt(OPTAB[getRealOpcode(opcode)].opcode)+3,2);
+      objcode += (halfBytes==5)?"000"):"0";
+      objcode += "000";
+      return objcode;
+    }
+
+    int operandAddress = stringHexToInt(LITTAB[tempOperand].address);
+    program_counter = address;
+    program_counter += (halfBytes==5)?4:3;
+
+    if(halfBytes==3){
+      int relativeAddress = operandAddress - program_counter;
+      if(relativeAddress>=(-2048) && relativeAddress<=2047){
+        objcode = intToStringHex(stringHexToInt(OPTAB[getRealOpcode(opcode)].opcode)+3,2);
+        objcode += '2';
+        objcode += intToStringHex(relativeAddress,halfBytes);
+        return objcode;
+      }
+
+      if(!nobase){
+        relativeAddress = operandAddress - base_register_value;
+        if(relativeAddress>=0 && relativeAddress<=4095){
+          objcode = intToStringHex(stringHexToInt(OPTAB[getRealOpcode(opcode)].opcode)+3,2);
+          objcode += '4';
+          objcode += intToStringHex(relativeAddress,halfBytes);
+          return objcode;
+        }
+      }
+
+      if(operandAddress<=4095){
+        objcode = intToStringHex(stringHexToInt(OPTAB[getRealOpcode(opcode)].opcode)+3,2);
+        objcode += '1';
+        objcode += intToStringHex(operandAddress,halfBytes);
+
+        /*add modifacation record here*/
+        modificationRecord += "M^" + intToStringHex(address+1,6) + '^';
+        modificationRecord += (halfBytes==5)?"05":"03";
+        modificationRecord += '\n';
+
+        return objcode;
+      }
+    }
+    else{//No base or pc based addressing in format 4
+      objcode = intToStringHex(stringHexToInt(OPTAB[getRealOpcode(opcode)].opcode)+3,2);
+      objcode += intToStringHex(xbpe+1,1);
+      objcode += intToStringHex(operandAddress,halfBytes);
+
+      /*add modifacation record here*/
+      modificationRecord += "M^" + intToStringHex(address+1,6) + '^';
+      modificationRecord += (halfBytes==5)?"05":"03";
+      modificationRecord += '\n';
+
+      return objcode;
+    }
+
+    writeData = "Line: "+to_string(lineNumber);
+    writeData += "Can't fit into program counter based or base register based addressing.";
+    writeToFile(errorFile,writeData);
+    objcode = intToStringHex(stringHexToInt(OPTAB[getRealOpcode(opcode)].opcode)+3,2);
+    objcode += (halfBytes==5)?(intToStringHex(xbpe+1,1)+"00"):intToStringHex(xbpe,1);
+    objcode += "000";
+
+    return objcode;
+  }
   else{/*Handle direct addressing*/
     int xbpe=0;
     string tempOperand = operand;
     if(operand.substr(operand.length()-2,2)==",X"){
       tempOperand = operand.substr(0,operand.length()-2);
       xbpe = 8;
-    }
-    else if(getFlagFormat(operand)=='='){
-      tempOperand = operand.substr(1,operand.length()-1);
     }
 
     if(SYMTAB[tempOperand].exists=='n'){
@@ -243,13 +311,7 @@ string createObjectCodeFormat34(){
       return objcode;
     }
 
-    int operandAddress;
-    if(getFlagFormat(operand)=='='){
-      operandAddress = stringHexToInt(LITTAB[tempOperand].address);
-    }
-    else{
-      operandAddress = stringHexToInt(SYMTAB[tempOperand].address);
-    }
+    int operandAddress = stringHexToInt(SYMTAB[tempOperand].address);
     program_counter = address;
     program_counter += (halfBytes==5)?4:3;
 
@@ -472,17 +534,20 @@ void pass2(){
           }
         }
       }//If opcode in optab
-      else if(opcode=="BYTE" || label == "*"){
-        int tempOffset = 0;
-        if(label=="*"){
-          tempOffset++;
+      else if(opcode=="BYTE"){
+        if(operand[0]=='X'){
+          objectCode = operand.substr(2,operand.length()-3);
         }
-
-        if(operand[0+tempOffset]=='X'){
-          objectCode = operand.substr(tempOffset+2,operand.length()-3-tempOffset);
+        else if(operand[0]=='C'){
+          objectCode = stringToHexString(operand.substr(2,operand.length()-3));
         }
-        else if(operand[0+tempOffset]=='C'){
-          objectCode = stringToHexString(operand.substr(2+tempOffset,operand.length()-3-tempOffset));
+      }
+      else if(label=="*"){
+        if(opcode[1]=='C'){
+          objectCode = stringToHexString(opcode.substr(3,opcode.length()-4));
+        }
+        else if(opcode[1]=='X'){
+          objectCode = opcode.substr(3,opcode.length()-4);
         }
       }
       else if(opcode=="WORD"){
