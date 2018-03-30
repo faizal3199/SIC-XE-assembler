@@ -37,7 +37,6 @@ bool readIntermediateFile(ifstream& readFile,bool& isComment, int& lineNumber, i
   if(!getline(readFile, fileLine)){
     return false;
   }
-
   lineNumber = stoi(readTillTab(fileLine,index));
 
   isComment = (fileLine[index]=='.')?true:false;
@@ -54,9 +53,6 @@ bool readIntermediateFile(ifstream& readFile,bool& isComment, int& lineNumber, i
   }
   else{
     operand = readTillTab(fileLine,index);
-    if(operand==" "){
-      operand = "";
-    }
   }
   readFirstNonWhiteSpace(fileLine,index,tempStatus,comment,true);
   return true;
@@ -230,7 +226,7 @@ string createObjectCodeFormat34(){
       writeToFile(errorFile,writeData);
 
       objcode = intToStringHex(stringHexToInt(OPTAB[getRealOpcode(opcode)].opcode)+3,2);
-      objcode += (halfBytes==5)?"000"):"0";
+      objcode += (halfBytes==5)?"000":"0";
       objcode += "000";
       return objcode;
     }
@@ -260,7 +256,7 @@ string createObjectCodeFormat34(){
 
       if(operandAddress<=4095){
         objcode = intToStringHex(stringHexToInt(OPTAB[getRealOpcode(opcode)].opcode)+3,2);
-        objcode += '1';
+        objcode += '0';
         objcode += intToStringHex(operandAddress,halfBytes);
 
         /*add modifacation record here*/
@@ -273,7 +269,7 @@ string createObjectCodeFormat34(){
     }
     else{//No base or pc based addressing in format 4
       objcode = intToStringHex(stringHexToInt(OPTAB[getRealOpcode(opcode)].opcode)+3,2);
-      objcode += intToStringHex(xbpe+1,1);
+      objcode += '1';
       objcode += intToStringHex(operandAddress,halfBytes);
 
       /*add modifacation record here*/
@@ -288,7 +284,7 @@ string createObjectCodeFormat34(){
     writeData += "Can't fit into program counter based or base register based addressing.";
     writeToFile(errorFile,writeData);
     objcode = intToStringHex(stringHexToInt(OPTAB[getRealOpcode(opcode)].opcode)+3,2);
-    objcode += (halfBytes==5)?(intToStringHex(xbpe+1,1)+"00"):intToStringHex(xbpe,1);
+    objcode += (halfBytes==5)?"100":"0";
     objcode += "000";
 
     return objcode;
@@ -598,9 +594,16 @@ void pass2(){
 
   while(readIntermediateFile(intermediateFile,isComment,lineNumber,address,label,opcode,operand,comment)){
     if(label=="*"){
-      objectCode = createObjectCodeFormat34();
+      if(opcode[1]=='C'){
+        objectCode = stringToHexString(opcode.substr(3,opcode.length()-4));
+      }
+      else if(opcode[1]=='X'){
+        objectCode = opcode.substr(3,opcode.length()-4);
+      }
       writeTextRecord();
     }
+    writeData = to_string(lineNumber) + "\t" + intToStringHex(address) + "\t" + label + "\t" + opcode + "\t" + operand + "\t" + objectCode +"\t" + comment;
+    writeToFile(ListingFile,writeData);
   }
   writeTextRecord(true);
   writeToFile(objectFile,modificationRecord,false);//Write modification record
@@ -608,7 +611,9 @@ void pass2(){
 }//Function end
 
 /*TODO
-1)LTORG
+1)LTORG with *
+2)EQU
+3)Expressions
 */
 
 int main(){

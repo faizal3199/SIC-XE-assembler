@@ -9,13 +9,13 @@ CLOOP   +JSUB    RDREC  Comment here
         JEQ     ENDFIL  Comment here
         +JSUB    WRREC  Comment here
         J       CLOOP Comment here
-ENDFIL  LDA     EOF Comment here
+ENDFIL  LDA     =C'EOF' Comment here
         STA    BUFFER Comment here
         LDA     #3  Comment here
         STA     LENGTH  Comment here
         +JSUB    WRREC  Comment here
         J       @RETADR Comment here
-EOF     BYTE    C'EOF' Comment here
+     LTORG    Comment here
 RETADR  RESW    1 Comment here
 LENGTH  RESW    1 Comment here
 BUFFER  RESB    4096 Comment here
@@ -43,12 +43,11 @@ INPUT   BYTE    X'F1' Comment here
 .
 WRREC   CLEAR   X Comment here
         LDT     LENGTH Comment here
-WLOOP   TD      OUTPUT Comment here
+WLOOP   TD      =X'05' Comment here
         JEQ     WLOOP Comment here
         LDCH    BUFFER,X Comment here
-        WD      OUTPUT Comment here
+        WD      =X'05' Comment here
         TIXR    T Comment here
         JLT     WLOOP Comment here
         RSUB Comment here
-OUTPUT  BYTE    X'05' Comment here
         END     FIRST Comment here

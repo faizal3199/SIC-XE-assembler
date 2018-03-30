@@ -10,46 +10,47 @@ Line	Address	Label	OPCODE	OPERAND	Comment
 45	00010		JEQ	ENDFIL	Comment here
 50	00013		+JSUB	WRREC	Comment here
 55	00017		J	CLOOP	Comment here
-60	0001A	ENDFIL	LDA	EOF	Comment here
+60	0001A	ENDFIL	LDA	=C'EOF'	Comment here
 65	0001D		STA	BUFFER	Comment here
 70	00020		LDA	#3	Comment here
 75	00023		STA	LENGTH	Comment here
 80	00026		+JSUB	WRREC	Comment here
 85	0002A		J	@RETADR	Comment here
-90	0002D	EOF	BYTE	C'EOF'	Comment here
-95	00030	RETADR	RESW	1	Comment here
-100	00033	LENGTH	RESW	1	Comment here
-105	00036	BUFFER	RESB	4096	Comment here
-110	.
-115	.   RDREC SUBROUTINE
-120	.
-125	01036	RDREC	CLEAR	X	Comment here
-130	01038		CLEAR	A	Comment here
-135	0103A		CLEAR	S	Comment here
-140	0103C		+LDT	#4096	Comment here
-145	01040	RLOOP	TD	INPUT	Comment here
-150	01043		JEQ	RLOOP	Comment here
-155	01046		RD	INPUT	Comment here
-160	01049		COMPR	A,S	Comment here
-165	0104B		JEQ	EXIT	Comment here
-170	0104E		STCH	BUFFER,X	Comment here
-175	01051		TIXR	T	Comment here
-180	01053		JLT	RLOOP	Comment here
-185	01056		FIX	 	Adding to test format 1
-190	01057	EXIT	STX	LENGTH	Comment here
-195	0105A		RSUB	 	Comment here
-200	0105D	INPUT	BYTE	X'F1'	Comment here
-205	.
-210	.   WRREC SUBROUTINE
-215	.
-220	0105E	WRREC	CLEAR	X	Comment here
-225	01060		LDT	LENGTH	Comment here
-230	01063	WLOOP	TD	OUTPUT	Comment here
-235	01066		JEQ	WLOOP	Comment here
-240	01069		LDCH	BUFFER,X	Comment here
-245	0106C		WD	OUTPUT	Comment here
-250	0106F		TIXR	T	Comment here
-255	01071		JLT	WLOOP	Comment here
-260	01074		RSUB	 	Comment here
-265	01077	OUTPUT	BYTE	X'05'	Comment here
-270	01078		END	FIRST	Comment here
+90	0002D		LTORG	 	Comment here
+95	0002D	*	=C'EOF'	 	 
+100	00030	RETADR	RESW	1	Comment here
+105	00033	LENGTH	RESW	1	Comment here
+110	00036	BUFFER	RESB	4096	Comment here
+115	.
+120	.   RDREC SUBROUTINE
+125	.
+130	01036	RDREC	CLEAR	X	Comment here
+135	01038		CLEAR	A	Comment here
+140	0103A		CLEAR	S	Comment here
+145	0103C		+LDT	#4096	Comment here
+150	01040	RLOOP	TD	INPUT	Comment here
+155	01043		JEQ	RLOOP	Comment here
+160	01046		RD	INPUT	Comment here
+165	01049		COMPR	A,S	Comment here
+170	0104B		JEQ	EXIT	Comment here
+175	0104E		STCH	BUFFER,X	Comment here
+180	01051		TIXR	T	Comment here
+185	01053		JLT	RLOOP	Comment here
+190	01056		FIX	 	Adding to test format 1
+195	01057	EXIT	STX	LENGTH	Comment here
+200	0105A		RSUB	 	Comment here
+205	0105D	INPUT	BYTE	X'F1'	Comment here
+210	.
+215	.   WRREC SUBROUTINE
+220	.
+225	0105E	WRREC	CLEAR	X	Comment here
+230	01060		LDT	LENGTH	Comment here
+235	01063	WLOOP	TD	=X'05'	Comment here
+240	01066		JEQ	WLOOP	Comment here
+245	01069		LDCH	BUFFER,X	Comment here
+250	0106C		WD	=X'05'	Comment here
+255	0106F		TIXR	T	Comment here
+260	01071		JLT	WLOOP	Comment here
+265	01074		RSUB	 	Comment here
+270	01077		END	FIRST	Comment here
+275	01077	*	=X'05'	 	 
