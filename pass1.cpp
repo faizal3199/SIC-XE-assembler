@@ -177,9 +177,3 @@ void pass1(){
   intermediateFile.close();
   errorFile.close();
 }
-
-// int main(){
-//   load_tables();
-//   pass1();
-//   return 0;
-// }

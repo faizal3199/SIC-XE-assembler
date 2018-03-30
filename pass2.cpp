@@ -337,7 +337,6 @@ void pass2(){
   writeToFile(objectFile,writeData);
 
   readIntermediateFile(intermediateFile,isComment,lineNumber,address,label,opcode,operand,comment);
-  // writeToFile(objectFile,"T^",false); //Write record only at address start
   currentTextRecordLength  = 0;
 
   while(opcode!="END"){
@@ -499,9 +498,7 @@ void pass2(){
 }//Function end
 
 /*TODO
-1) BASE and NOBASE
-2)modificationRecord
-3)LTORG
+1)LTORG
 */
 
 int main(){
