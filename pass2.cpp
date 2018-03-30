@@ -13,7 +13,7 @@ string label,opcode,operand,comment;
 string operand1,operand2;
 
 int lineNumber,address,startAddress;
-string objectCode, writeData, currentRecord, modificationRecord;
+string objectCode, writeData, currentRecord, modificationRecord, endRecord;
 
 int program_counter, base_register_value, currentTextRecordLength;
 bool nobase;
@@ -29,19 +29,21 @@ string readTillTab(string data,int& index){
   index++;
   return tempBuffer;
 }
-void readIntermediateFile(ifstream& readFile,bool& isComment, int& lineNumber, int& address, string& label, string& opcode, string& operand, string& comment){
+bool readIntermediateFile(ifstream& readFile,bool& isComment, int& lineNumber, int& address, string& label, string& opcode, string& operand, string& comment){
   string fileLine="";
   string tempBuffer="";
   bool tempStatus;
   int index=0;
-  getline(readFile, fileLine);
+  if(!getline(readFile, fileLine)){
+    return false;
+  }
 
   lineNumber = stoi(readTillTab(fileLine,index));
 
   isComment = (fileLine[index]=='.')?true:false;
   if(isComment){
     readFirstNonWhiteSpace(fileLine,index,tempStatus,comment,true);
-    return;
+    return true;
   }
 
   address = stringHexToInt(readTillTab(fileLine,index));
@@ -57,6 +59,7 @@ void readIntermediateFile(ifstream& readFile,bool& isComment, int& lineNumber, i
     }
   }
   readFirstNonWhiteSpace(fileLine,index,tempStatus,comment,true);
+  return true;
 }
 
 string createObjectCodeFormat34(){
@@ -307,6 +310,76 @@ string createObjectCodeFormat34(){
   }
 }
 
+void writeTextRecord(bool lastRecord=false){
+  if(lastRecord){
+    if(currentRecord.length()>0){//Write last text record
+      writeData = intToStringHex(currentRecord.length()/2,2) + '^' + currentRecord;
+      writeToFile(objectFile,writeData);
+      currentRecord = "";
+    }
+    return;
+  }
+  if(objectCode != ""){
+    if(currentRecord.length()==0){
+      writeData = "T^" + intToStringHex(address,6) + '^';
+      writeToFile(objectFile,writeData,false);
+    }
+    //What is objectCode length > 60
+    if((currentRecord + objectCode).length()>60){
+      //Write current record
+      writeData = intToStringHex(currentRecord.length()/2,2) + '^' + currentRecord;
+      writeToFile(objectFile,writeData);
+
+      //Initialize new text currentRecord
+      currentRecord = "";
+      writeData = "T^" + intToStringHex(address,6) + '^';
+      writeToFile(objectFile,writeData,false);
+    }
+
+    currentRecord += objectCode;
+  }
+  else{
+    /*Assembler directive which doesn't result in address genrenation*/
+    if(opcode=="START"||opcode=="END"||opcode=="BASE"||opcode=="NOBASE"||opcode=="LTORG"){
+      /*DO nothing*/
+    }
+    else{
+      //Write current record if exists
+      if(currentRecord.length()>0){
+        writeData = intToStringHex(currentRecord.length()/2,2) + '^' + currentRecord;
+        writeToFile(objectFile,writeData);
+      }
+      currentRecord = "";
+    }
+  }
+}
+
+void writeEndRecord(bool write=true){
+  if(write){
+    if(endRecord.length()>0){
+      writeToFile(objectFile,endRecord);
+    }
+    else{
+      writeEndRecord(false);
+    }
+  }
+  if(operand==""||operand==" "){//If no operand of END
+    endRecord = "E^" + intToStringHex(startAddress,6);
+  }
+  else{//Make operand on end firstExecutableAddress
+    int firstExecutableAddress;
+    if(SYMTAB[operand].exists=='n'){
+      firstExecutableAddress = startAddress;
+      writeData = "Line "+to_string(lineNumber)+": Symbol doesn't exists. Found " + operand;
+      writeToFile(errorFile,writeData);
+    }
+    else{
+      firstExecutableAddress = stringHexToInt(SYMTAB[operand].address);
+    }
+    endRecord = "E^" + intToStringHex(firstExecutableAddress,6);
+  }
+}
+
 void pass2(){
   string tempBuffer;
   intermediateFile.open("intermediate_file.txt");//begin
@@ -441,39 +514,8 @@ void pass2(){
         objectCode = "";
       }
       //Write to text record if any generated
-      if(objectCode != ""){
-        if(currentRecord.length()==0){
-          writeData = "T^" + intToStringHex(address,6) + '^';
-          writeToFile(objectFile,writeData,false);
-        }
-        //What is objectCode length > 60
-        if((currentRecord + objectCode).length()>60){
-          //Write current record
-          writeData = intToStringHex(currentRecord.length()/2,2) + '^' + currentRecord;
-          writeToFile(objectFile,writeData);
+      writeTextRecord();
 
-          //Initialize new text currentRecord
-          currentRecord = "";
-          writeData = "T^" + intToStringHex(address,6) + '^';
-          writeToFile(objectFile,writeData,false);
-        }
-
-        currentRecord += objectCode;
-      }
-      else{
-        /*Assembler directive which doesn't result in address genrenation*/
-        if(opcode=="START"||opcode=="END"||opcode=="BASE"||opcode=="NOBASE"||opcode=="LTORG"){
-          /*DO nothing*/
-        }
-        else{
-          //Write current record if exists
-          if(currentRecord.length()>0){
-            writeData = intToStringHex(currentRecord.length()/2,2) + '^' + currentRecord;
-            writeToFile(objectFile,writeData);
-          }
-          currentRecord = "";
-        }
-      }
       writeData = to_string(lineNumber) + "\t" + intToStringHex(address) + "\t" + label + "\t" + opcode + "\t" + operand + "\t" + objectCode +"\t" + comment;
     }//if not comment
     else{
@@ -481,34 +523,24 @@ void pass2(){
     }
     writeToFile(ListingFile,writeData);//Write listing line
     readIntermediateFile(intermediateFile,isComment,lineNumber,address,label,opcode,operand,comment);//Read next line
+    objectCode = "";
   }//while opcode not end
-  if(currentRecord.length()>0){//Write last text record
-    writeData = intToStringHex(currentRecord.length()/2,2) + '^' + currentRecord;
-    writeToFile(objectFile,writeData);
-    currentRecord = "";
-  }
+  writeTextRecord();
 
-  writeToFile(objectFile,modificationRecord,false);//Write modification record
-
-  //Write end record
-  if(operand==""){//If no operand of END
-    writeData = "E^" + intToStringHex(startAddress,6);
-  }
-  else{//Make operand on end firstExecutableAddress
-    int firstExecutableAddress;
-    if(SYMTAB[operand].exists=='n'){
-      firstExecutableAddress = startAddress;
-      writeData += "Symbol doesn't exists. Found " + operand;
-      writeToFile(errorFile,writeData);
-    }
-    else{
-      firstExecutableAddress = stringHexToInt(SYMTAB[operand].address);
-    }
-    writeData = "E^" + intToStringHex(firstExecutableAddress,6);
-    writeToFile(objectFile,writeData);
-  }
+  //Save end record
+  writeEndRecord(false);
   writeData = to_string(lineNumber) + "\t" + intToStringHex(address) + "\t" + label + "\t" + opcode + "\t" + operand + "\t" + "" +"\t" + comment;
   writeToFile(ListingFile,writeData);
+
+  while(readIntermediateFile(intermediateFile,isComment,lineNumber,address,label,opcode,operand,comment)){
+    if(label=="*"){
+      objectCode = createObjectCodeFormat34();
+      writeTextRecord();
+    }
+  }
+  writeTextRecord(true);
+  writeToFile(objectFile,modificationRecord,false);//Write modification record
+  writeEndRecord(true);//Write end record
 }//Function end
 
 /*TODO
