@@ -84,12 +84,13 @@ void pass1(){
           lastDeltaLOCCTR += 3;
           if(getFlagFormat(opcode)=='+'){
             LOCCTR += 1;
-            lastDeltaLOCCTR += 3;
+            lastDeltaLOCCTR += 1;
           }
           if(OPTAB[getRealOpcode(opcode)].opcode=="RSUB"){
             operand = " ";
           }
           else{
+            readFirstNonWhiteSpace(fileLine,index,statusCode,operand);
             if(operand[operand.length()-1] == ','){
               readFirstNonWhiteSpace(fileLine,index,statusCode,tempOpcode);
               opcode += tempOpcode;

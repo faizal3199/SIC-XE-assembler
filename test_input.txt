@@ -2,6 +2,7 @@
 TEST START 1000
   LDA #5  load value 5 into register a
   STA ALPHA store in ALPHA
+  COMPR A,B Compare register A and B
   LDA #90 load ascii code for 'z' into reg a
   STCH C1 store in character variable C1
 .
