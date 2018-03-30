@@ -93,6 +93,21 @@ int stringHexToInt(string x){
 //   return value;
 // } replaced with stoul supported from c++v11
 
+string stringToHexString(const string& input){
+    static const char* const lut = "0123456789ABCDEF";
+    size_t len = input.length();
+
+    string output;
+    output.reserve(2 * len);
+    for (size_t i = 0; i < len; ++i)
+    {
+        const unsigned char c = input[i];
+        output.push_back(lut[c >> 4]);
+        output.push_back(lut[c & 15]);
+    }
+    return output;
+}
+
 bool checkWhiteSpace(char x){
   if(x==' ' || x=='\t'){
     return true;
@@ -105,6 +120,15 @@ bool checkCommentLine(string line){
     return true;
   }
   return false;
+}
+
+bool if_all_num(string x){
+  bool all_num = true;
+  int i = 0;
+  while(all_num && (i<x.length())){
+    all_num &= isdigit(x[i++]);
+  }
+  return all_num;
 }
 
 void readFirstNonWhiteSpace(string line,int& index,bool& status,string& data,bool readTillEnd=false){

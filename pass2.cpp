@@ -12,7 +12,7 @@ bool isComment;
 string label,opcode,operand,comment;
 string operand1,operand2;
 
-int lineNumber,address;
+int lineNumber,address,startAddress;
 string objectCode, writeData, currentRecord, modificationRecord;
 
 int program_counter, base_register_value, currentTextRecordLength;
@@ -49,7 +49,7 @@ void readIntermediateFile(ifstream& readFile,bool& isComment, int& lineNumber, i
   label = readTillTab(fileLine,index);
   opcode = readTillTab(fileLine,index);
   if(opcode=='BYTE'){
-    readByteOperand(fileLine,index,tempStatus,opcode);
+    readByteOperand(fileLine,index,tempStatus,operand);
   }
   else{
     operand = readTillTab(fileLine,index);
@@ -73,7 +73,24 @@ string createObjectCodeFormat34(){
       objcode += (halfBytes==5)?"100000":"0000";
       return objcode;
     }
-    int immediateValue = stringHexToInt(operand.substr(1,operand.length()-1));
+
+    string tempOperand = operand.substr(1,operand.length()-1);
+    int immediateValue;
+    if(if_all_num(tempOperand)){
+      immediateValue = stringHexToInt(tempOperand);
+    }
+    else if(SYMTAB[tempOperand].exists=='y') {
+      immediateValue = stringHexToInt(SYMTAB[tempOperand].address);
+    }
+    else{
+      writeData = "Line: "+to_string(lineNumber)
+      writeData += "Symbol doesn't exists. Found " + tempOperand;
+      writeToFile(errorFile,writeData);
+      objcode = intToStringHex(stringHexToInt(OPTAB[getRealOpcode(opcode)].opcode)+1,2);
+      objcode += (halfBytes==5)?"100000":"0000";
+      return objcode;
+    }
+    /*Process Immediate value*/
     if(immediateValue>=(1<<4*halfBytes)){
       writeData = "Line: "+to_string(lineNumber)+" Immediate value exceeds format limit";
       writeToFile(errorFile,writeData);
@@ -136,7 +153,7 @@ string createObjectCodeFormat34(){
 
     return objcode;
   }
-  else{
+  else{/*Handle direct addressing*/
     int xbpe=0;
     string tempOperand = operand;
     if(operand.substr(operand.length()-2,2)==",X"){
@@ -208,6 +225,7 @@ void pass2(){
   /*Intialize global variables*/
   objectCode = "";
   currentTextRecordLength=0;
+  currentRecord = "";
   nobase = true;
 
   readIntermediateFile(intermediateFile,isComment,lineNumber,address,label,opcode,operand,comment);
@@ -218,11 +236,13 @@ void pass2(){
   }
 
   if(opcode=="START"){
-    writeData = to_string(lineNumber) + "\t" + intToStringHex(address) + "\t" + label + "\t" + opcode + "\t" + operand + "\t" + comment +"\t" + objectCode;
+    startAddress = address;
+    writeData = to_string(lineNumber) + "\t" + intToStringHex(address) + "\t" + label + "\t" + opcode + "\t" + operand + "\t" + objectCode +"\t" + comment;
     writeToFile(ListingFile,writeData);
   }
   else{
     label = "";
+    startAddress = 0;
     address = 0;
   }
 
@@ -248,7 +268,7 @@ void pass2(){
               objectCode = OPTAB[getRealOpcode(opcode)].opcode + intToStringHex(stoi(operand1),1) + '0';
             }
             else if(REGTAB[operand1].exists=='y'){
-              objectCode = OPTAB[getRealOpcode(opcode)].opcode + operand1 + '0';
+              objectCode = OPTAB[getRealOpcode(opcode)].opcode + REGTAB[operand1].num + '0';
             }
             else{
               objectCode = getRealOpcode(opcode) + '0' + '0';
@@ -261,36 +281,115 @@ void pass2(){
               objectCode = OPTAB[getRealOpcode(opcode)].opcode + "00";
               writeData = "Line: "+to_string(lineNumber)+" Invalid Register name";
               writeToFile(errorFile,writeData);
-              break;
             }
-            if(getRealOpcode(opcode)=="SHIFTR" || getRealOpcode(opcode)=="SHIFTL"){
-              objectCode = OPTAB[getRealOpcode(opcode)].opcode + operand1 + intToStringHex(stoi(operand2),1);
+            else if(getRealOpcode(opcode)=="SHIFTR" || getRealOpcode(opcode)=="SHIFTL"){
+              objectCode = OPTAB[getRealOpcode(opcode)].opcode + REGTAB[operand1].num + intToStringHex(stoi(operand2),1);
             }
             else if(REGTAB[operand2].exists=='n'){
               objectCode = OPTAB[getRealOpcode(opcode)].opcode + "00";
               writeData = "Line: "+to_string(lineNumber)+" Invalid Register name";
               writeToFile(errorFile,writeData);
-              break;
             }
             else{
-              objectCode = OPTAB[getRealOpcode(opcode)].opcode + operand1 + operand2;
+              objectCode = OPTAB[getRealOpcode(opcode)].opcode + REGTAB[operand1].num + REGTAB[operand2].num;
             }
           }
         }
         else if(OPTAB[getRealOpcode(opcode)].format==3){
           if(getRealOpcode(opcode)=="RSUB"){
-            if(getFlagFormat(opcode)=='+'){
-              objectCode = OPTAB[getRealOpcode(opcode)].opcode + "000000";
-            }
-            else{
-              objectCode = OPTAB[getRealOpcode(opcode)].opcode + "0000";
-            }
+            objectCode = OPTAB[getRealOpcode(opcode)].opcode;
+            objectCode += (getFlagFormat(opcode)=='+')?"000000":"0000";
           }
           else{
             objectCode = createObjectCodeFormat34();
           }
         }
       }//If opcode in optab
+      else if(opcode=="BYTE"){
+        if(operand[0]=='X'){
+          objectCode = operand.substr(2,operand.length()-3);
+        }
+        else if(operand[0]=='C'){
+          objectCode = stringToHexString(operand.substr(2,operand.length()-3));
+        }
+      }
+      else if(opcode=="WORD"){
+        objectCode = intToStringHex(stoi(operand),6);
+      }else{
+        objectCode = "";
+      }
+      //Write to text record if any generated
+      if(objectCode != ""){
+        if(currentRecord.length()==0){
+          writeData = intToStringHex(address,6);
+          writeToFile(objectFile,writeData);
+        }
+        //What is objectCode length > 60
+        if((currentRecord + objectCode).length()>60){
+          //Write current record
+          writeData = intToStringHex(currentRecord.length(),2) + currentRecord;
+          writeToFile(objectFile,currentRecord);
+
+          //Initialize new text currentRecord
+          currentRecord = "";
+          writeData = "T^" + intToStringHex(address,6);
+          writeToFile(objectFile,writeData);
+        }
+        else{
+          currentRecord += objectCode;
+        }
+      }
+      else{
+        /*Assembler directive which doesn't result in address genrenation*/
+        if(opcode=="START"||opcode=="END"||opcode=="BASE"||opcode=="NOBASE"||opcode=="LTORG"){
+          /*DO nothing*/
+        }
+        else{
+          //Write current record
+          writeData = intToStringHex(currentRecord.length(),2) + currentRecord;
+          writeToFile(objectFile,currentRecord);
+
+          currentRecord = "";
+        }
+      }
+      writeData = to_string(lineNumber) + "\t" + intToStringHex(address) + "\t" + label + "\t" + opcode + "\t" + operand + "\t" + objectCode +"\t" + comment;
     }//if not comment
-  }//while not end
+    else{
+      writeData = to_string(lineNumber) + "\t" + comment;
+    }
+    writeToFile(ListingFile,writeData);//Write listing line
+    readIntermediateFile(intermediateFile,isComment,lineNumber,address,label,opcode,operand,comment);//Read next line
+  }//while opcode not end
+  if(currentRecord.length()>0){//Write last text record
+    writeData = intToStringHex(currentRecord.length(),2) + currentRecord;
+    writeToFile(objectFile,currentRecord);
+  }
+
+  //Write end record
+  if(operand==""){//In no operand of END
+    writeData = "E^" + intToStringHex(startAddress,6);
+  }
+  else{//Make operand on end firstExecutableAddress
+    int firstExecutableAddress;
+    if(SYMTAB[operand].exists=='n'){
+      firstExecutableAddress = startAddress;
+      writeData += "Symbol doesn't exists. Found " + operand;
+      writeToFile(errorFile,writeData);
+    }
+    else{
+      firstExecutableAddress = stringHexToInt(SYMTAB[operand].address);
+    }
+    writeData = "E^" + intToStringHex(firstExecutableAddress,6);
+    writeToFile(objectFile,writeData);
+  }
+  writeData = to_string(lineNumber) + "\t" + intToStringHex(address) + "\t" + label + "\t" + opcode + "\t" + operand + "\t" + "" +"\t" + comment;
+  writeToFile(ListingFile,writeData);
+
+  writeToFile(objectFile,modificationRecord);//Write modification record
 }//Function end
+
+/*TODO
+1) BASE and NOBASE
+2)modificationRecord
+3)LTORG
+*/
