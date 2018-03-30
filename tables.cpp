@@ -15,6 +15,16 @@ struct struct_opcode{
       exists='n';
     }
 };
+struct struct_literal{
+    string value;
+    string address;
+    char exists;
+    struct_literal(){
+      value="";
+      address="?";
+      exists='n';
+    }
+};
 struct struct_label{
      string address;
      string name;
@@ -37,10 +47,12 @@ struct struct_register{
 typedef map<string,struct_label> SYMBOL_TABLE_TYPE;
 typedef map<string,struct_opcode> OPCODE_TABLE_TYPE;
 typedef map<string,struct_register> REG_TABLE_TYPE;
+typedef map<string,struct_literal> LIT_TABLE_TYPE;
 
 SYMBOL_TABLE_TYPE SYMTAB;
 OPCODE_TABLE_TYPE OPTAB;
 REG_TABLE_TYPE REGTAB;
+LIT_TABLE_TYPE LITTAB;
 
 void load_REGTAB(){
   REGTAB["A"].num='0';

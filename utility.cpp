@@ -154,9 +154,11 @@ string getRealOpcode(string opcode){
   return opcode;
 }
 
-char getFlagFormat(string opcode){
-  if(opcode[0] == '#' || opcode[0] == '+' || opcode[0] == '@'){
-    return opcode[0];
+char getFlagFormat(string data){
+  if(data[0] == '#' || data[0] == '+' || data[0] == '@' || data[0] == '='){
+    return data[0];
   }
   return ' ';
 }
+
+void getNextLiteral(string& value, string& address)

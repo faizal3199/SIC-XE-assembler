@@ -19,7 +19,7 @@ void pass1(){
   writeToFile(errorFile,"************PASS1************");
 
   string fileLine;
-  string writeData;
+  string writeData,writeDataSuffix="",writeDataPrefix="";
   int index=0;
 
   bool statusCode;
@@ -96,6 +96,15 @@ void pass1(){
               operand += tempOperand;
             }
           }
+
+          if(getFlagFormat(operand)=='='){
+            tempOperand = operand.substr(1,operand.length()-1);
+            if(LITTAB[tempOperand].exists=='n'){
+              LITTAB[tempOperand].value = tempOperand;
+              LITTAB[tempOperand].exists = 'y';
+              LITTAB[tempOperand].address = "?";
+            }
+          }
         }
         else if(OPTAB[getRealOpcode(opcode)].format==1){
           operand = " ";
@@ -145,6 +154,34 @@ void pass1(){
       else if(opcode=="BASE"){
         readFirstNonWhiteSpace(fileLine,index,statusCode,operand);
       }
+      else if(opcode=="LTORG"){
+        string litAddress,litValue,litPrefix;
+        int lineNumberDelta = lineNumber;
+        litPrefix = "";
+        for(auto const& it: LITTAB){
+          litAddress = it.second.address;
+          litValue = it.second.value;
+          if(litAddress!="?"){
+            /*Pass as already address is assigned*/
+          }
+          else{
+            lineNumber += 5;
+            LITTAB[it.first].address = intToStringHex(LOCCTR);
+            litPrefix += "\n" + to_string(lineNumber) + "\t" + intToStringHex(LOCCTR) + "\t" + "*" + "\t" + "="+litValue + "\t" + " " + "\t" + " ";
+
+            if(litValue[0]=='X'){
+              LOCCTR += (operand.length() -3)/2;
+              lastDeltaLOCCTR += (operand.length() -3)/2;
+            }
+            else if(litValue[0]=='C'){
+              LOCCTR += operand.length() -3;
+              lastDeltaLOCCTR += operand.length() -3;
+            }
+          }
+        }
+        writeDataSuffix = litPrefix;
+        lineNumber = lineNumberDelta;
+      }
       else{
         readFirstNonWhiteSpace(fileLine,index,statusCode,operand);
         writeData = "Line: "+to_string(lineNumber)+" : Invalid OPCODE. Found " + opcode;
@@ -152,7 +189,9 @@ void pass1(){
         error_flag = true;
       }
       readFirstNonWhiteSpace(fileLine,index,statusCode,comment,true);
-      writeData = to_string(lineNumber) + "\t" + intToStringHex(LOCCTR-lastDeltaLOCCTR) + "\t" + label + "\t" + opcode + "\t" + operand + "\t" + comment;
+      writeData = writeDataPrefix + to_string(lineNumber) + "\t" + intToStringHex(LOCCTR-lastDeltaLOCCTR) + "\t" + label + "\t" + opcode + "\t" + operand + "\t" + comment + writeDataSuffix;
+      writeDataPrefix = "";
+      writeDataSuffix = "";
     }
     else{
       writeData = to_string(lineNumber) + "\t" + fileLine;
