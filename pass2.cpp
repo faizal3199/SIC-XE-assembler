@@ -137,11 +137,18 @@ string createObjectCodeFormat34(){
           return objcode;
         }
       }
+
+      if(operandAddress<=4095){
+        objcode = intToStringHex(stringHexToInt(OPTAB[getRealOpcode(opcode)].opcode)+2,2);
+        objcode += '0';
+        objcode += intToStringHex(operandAddress,halfBytes);
+        return objcode;
+      }
     }
     else{//No base or pc based addressing in format 4
       objcode = intToStringHex(stringHexToInt(OPTAB[getRealOpcode(opcode)].opcode)+2,2);
       objcode += '1';
-      objcode += intToStringHex(relativeAddress,halfBytes);
+      objcode += intToStringHex(operandAddress,halfBytes);
       return objcode;
     }
 
@@ -194,11 +201,18 @@ string createObjectCodeFormat34(){
           return objcode;
         }
       }
+
+      if(operandAddress<=4095){
+        objcode = intToStringHex(stringHexToInt(OPTAB[getRealOpcode(opcode)].opcode)+3,2);
+        objcode += intToStringHex(xbpe,1);
+        objcode += intToStringHex(operandAddress,halfBytes);
+        return objcode;
+      }
     }
     else{//No base or pc based addressing in format 4
       objcode = intToStringHex(stringHexToInt(OPTAB[getRealOpcode(opcode)].opcode)+3,2);
       objcode += intToStringHex(xbpe+1,1);
-      objcode += intToStringHex(relativeAddress,halfBytes);
+      objcode += intToStringHex(operandAddress,halfBytes);
       return objcode;
     }
 
