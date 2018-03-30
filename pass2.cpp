@@ -226,6 +226,9 @@ string createObjectCodeFormat34(){
       tempOperand = operand.substr(0,operand.length()-2);
       xbpe = 8;
     }
+    else if(getFlagFormat(operand)=='='){
+      tempOperand = operand.substr(1,operand.length()-1);
+    }
 
     if(SYMTAB[tempOperand].exists=='n'){
       writeData = "Line: "+to_string(lineNumber);
@@ -238,7 +241,13 @@ string createObjectCodeFormat34(){
       return objcode;
     }
 
-    int operandAddress = stringHexToInt(SYMTAB[tempOperand].address);
+    int operandAddress
+    if(getFlagFormat=='='){
+      operandAddress = stringHexToInt(LITTAB[tempOperand].address);
+    }
+    else{
+      operandAddress = stringHexToInt(SYMTAB[tempOperand].address);
+    }
     program_counter = address;
     program_counter += (halfBytes==5)?4:3;
 
@@ -391,12 +400,17 @@ void pass2(){
           }
         }
       }//If opcode in optab
-      else if(opcode=="BYTE"){
-        if(operand[0]=='X'){
-          objectCode = operand.substr(2,operand.length()-3);
+      else if(opcode=="BYTE" || label == "*"){
+        int tempOffset = 0;
+        if(label=="*"){
+          tempOffset++;
         }
-        else if(operand[0]=='C'){
-          objectCode = stringToHexString(operand.substr(2,operand.length()-3));
+
+        if(operand[0+tempOffset]=='X'){
+          objectCode = operand.substr(tempOffset+2,operand.length()-3-tempOffset);
+        }
+        else if(operand[0+tempOffset]=='C'){
+          objectCode = stringToHexString(operand.substr(2+tempOffset,operand.length()-3-tempOffset));
         }
       }
       else if(opcode=="WORD"){
