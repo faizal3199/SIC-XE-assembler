@@ -49,7 +49,7 @@ Line	Address	Label	OPCODE	OPERAND	Comment
 240	01066		JEQ	WLOOP	Comment here
 245	01069		LDCH	BUFFER,X	Comment here
 250	0106C		WD	=X'05'	Comment here
-255	0106F	EQUTES	EQU	15	
+255	0000F	EQUTES	EQU	15	
 260	0106F		TIXR	T	Comment here
 265	01071		JLT	WLOOP	Comment here
 270	01074		RSUB	 	Comment here

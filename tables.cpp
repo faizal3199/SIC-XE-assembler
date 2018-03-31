@@ -28,11 +28,13 @@ struct struct_literal{
 struct struct_label{
      string address;
      string name;
+     int relative;
      char exists;
      struct_label(){
        name="undefined";
        address="0";
        exists='n';
+       relative = 0;
      }
 };
 struct struct_register{

@@ -96,6 +96,7 @@ void pass1(){
         if(SYMTAB[label].exists=='n'){
           SYMTAB[label].name = label;
           SYMTAB[label].address = intToStringHex(LOCCTR);
+          SYMTAB[label].relative = 1;
           SYMTAB[label].exists = 'y';
         }
         else{
@@ -200,26 +201,123 @@ void pass1(){
       }
       else if(opcode=="EQU"){
         readFirstNonWhiteSpace(fileLine,index,statusCode,operand);
-        string tempOperand;
+        tempOperand = "";
+        string singleOperand="?",singleOperator="?",valueString="",valueTemp="";
+        int lastOperand=0,lastOperator=0,pairCount=0;
+        bool relative;
+        char lastByte = ' ';
+        bool Illegal = false;
+
         if(operand=="*"){
           tempOperand = intToStringHex(LOCCTR-lastDeltaLOCCTR,6);
+          relative = 1;
         }
         else if(if_all_num(operand)){
           tempOperand = intToStringHex(stoi(operand),6);
+          relative = 0;
         }
         else{
-          if(SYMTAB[operand].exists=='y'){
-            tempOperand = SYMTAB[operand].address;
+          lastByte = operand[operand.length()-1];
+
+          while(lastByte=='+'||lastByte=='-'||lastByte=='/'||lastByte=='*'){
+            readFirstNonWhiteSpace(fileLine,index,statusCode,tempOperand);
+            operand += tempOperand;
+            lastByte = operand[operand.length()-1];
+          }//Code for reading whole operand
+
+          for(int i=0;i<operand.length();i++){
+            singleOperand = "";
+
+            lastByte = operand[i];
+            while(lastByte=='+'&&lastByte=='-'&&lastByte=='/'&&lastByte=='*'&&i<operand.length()-1){
+              singleOperand += lastByte;
+              lastByte = operand[++i];
+            }
+
+            if(SYMTAB[singleOperand].exists=='y'){//Check operand existence
+              lastOperand = SYMTAB[singleOperand].relative;
+              valueTemp = stringHexToInt(SYMTAB[singleOperand].address);
+            }
+            else if((singleOperand != "" || singleOperand !="?" ) && if_all_num(singleOperand)){
+              lastOperand = 0;
+              valueTemp = singleOperand;
+            }
+            else{
+              writeData = "Line: "+to_string(lineNumber)+" : Can't find symbol. Found "+singleOperand;
+              writeToFile(errorFile,writeData);
+              Illegal = true;
+              break;
+            }
+
+            if(lastOperand*lastOperator == 1){//Check expressions legallity
+              writeData = "Line: "+to_string(lineNumber)+" : Illegal expression";
+              writeToFile(errorFile,writeData);
+              Illegal = true;
+              break;
+            }
+            else if((singleOperator=="-" || singleOperator=="+" || singleOperator=="?")&&lastOperand==1){
+              if(singleOperator=="-"){
+                pairCount += -1;
+              }
+              else{
+                pairCount += 1;
+              }
+            }
+
+            valueString += valueTemp;
+
+            singleOperator= "";
+            while(i<operand.length()-1&&(lastByte=='+'||lastByte=='-'||lastByte=='/'||lastByte=='*')){
+              singleOperator += lastByte;
+              lastByte = operand[++i];
+            }
+
+            if(singleOperator.length()>1){
+              writeData = "Line: "+to_string(lineNumber)+" : Illegal operator in expression. Found "+singleOperator;
+              writeToFile(errorFile,writeData);
+              Illegal = true;
+              break;
+            }
+
+            if(singleOperator=="*" || singleOperator == "/"){
+              lastOperator = 1;
+            }
+            else{
+              lastOperator = 0;
+            }
+
+            valueString += singleOperator;
+
+          }
+
+          if(!Illegal){
+            if(pairCount==1){
+              /*relative*/
+              relative = 1;
+              /*tempOperand = eval(valueString)*/
+            }
+            else if(pairCount==0){
+              /*absolute*/
+              relative = 0;
+              /*tempOperand = eval(valueString)*/
+            }
+            else{
+              writeData = "Line: "+to_string(lineNumber)+" : Illegal expression";
+              writeToFile(errorFile,writeData);
+              tempOperand = "000000";
+              relative = 0;
+            }
           }
           else{
-            writeData = "Line: "+to_string(lineNumber)+" : Can't find symbol. Found "+operand;
-            writeToFile(errorFile,writeData);
             tempOperand = "000000";
+            relative = 0;
           }
         }
-        /*TODO expressions*/
+
         SYMTAB[label].name = label;
         SYMTAB[label].address = tempOperand;
+        SYMTAB[label].relative = relative;
+        lastDeltaLOCCTR = LOCCTR - stringHexToInt(tempOperand);
       }
       else{
         readFirstNonWhiteSpace(fileLine,index,statusCode,operand);
