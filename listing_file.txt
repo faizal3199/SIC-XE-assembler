@@ -45,14 +45,14 @@ Line	Address	Label	OPCODE	OPERAND	ObjectCode	Comment
 220	.
 225	0105E	WRREC	CLEAR	X	B410	Comment here
 230	01060		LDT	LENGTH	774000	Comment here
-235	01063	WLOOP	TD	=X'05'	E32016	Comment here
+235	01063	WLOOP	TD	=X'05'	E32017	Comment here
 240	01066		JEQ	WLOOP	332FFA	Comment here
 245	01069		LDCH	BUFFER,X	53C003	Comment here
-250	0106C		WD	=X'05'	DF200D	Comment here
+250	0106C		WD	=X'05'	DF200E	Comment here
 255	0106F		TIXR	T	B850	Comment here
 260	01071		JLT	WLOOP	3B2FEF	Comment here
 265	01074		RSUB	 	4F0000	Comment here
 270	01077		LDF	=*	732000	Test for literal * here
 275	0107A		END	FIRST		Comment here
-280	0107A	*	=X'01077'	 	01077	 
-285	0107C	*	=X'05'	 	05	 
+280	0107A	*	=X'001077'	 	001077	 
+285	0107D	*	=X'05'	 	05	 

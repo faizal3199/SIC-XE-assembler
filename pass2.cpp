@@ -222,7 +222,7 @@ string createObjectCodeFormat34(){
     string tempOperand = operand.substr(1,operand.length()-1);
 
     if(tempOperand=="*"){
-      tempOperand = "X'" + intToStringHex(address) + "'";
+      tempOperand = "X'" + intToStringHex(address,6) + "'";
     }
 
     if(LITTAB[tempOperand].exists=='n'){

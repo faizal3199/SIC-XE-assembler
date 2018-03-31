@@ -54,5 +54,5 @@ Line	Address	Label	OPCODE	OPERAND	Comment
 265	01074		RSUB	 	Comment here
 270	01077		LDF	=*	Test for literal * here
 275	0107A		END	FIRST	Comment here
-280	0107A	*	=X'01077'	 	 
-285	0107C	*	=X'05'	 	 
+280	0107A	*	=X'001077'	 	 
+285	0107D	*	=X'05'	 	 
