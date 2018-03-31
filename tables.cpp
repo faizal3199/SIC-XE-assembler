@@ -37,6 +37,20 @@ struct struct_label{
        relative = 0;
      }
 };
+struct struct_blocks{
+     string startAddress;
+     string name;
+     string LOCCTR;
+     int number;
+     char exists;
+     struct_blocks(){
+       name="undefined";
+       startAddress="?";
+       exists='n';
+       number = -1;
+       LOCCTR = "0";
+     }
+};
 struct struct_register{
      char num;
      char exists;
@@ -50,11 +64,13 @@ typedef map<string,struct_label> SYMBOL_TABLE_TYPE;
 typedef map<string,struct_opcode> OPCODE_TABLE_TYPE;
 typedef map<string,struct_register> REG_TABLE_TYPE;
 typedef map<string,struct_literal> LIT_TABLE_TYPE;
+typedef map<string,struct_blocks> BLOCK_TABLE_TYPE;
 
 SYMBOL_TABLE_TYPE SYMTAB;
 OPCODE_TABLE_TYPE OPTAB;
 REG_TABLE_TYPE REGTAB;
 LIT_TABLE_TYPE LITTAB;
+BLOCK_TABLE_TYPE BLOCKS;
 
 void load_REGTAB(){
   REGTAB["A"].num='0';
@@ -322,7 +338,15 @@ void load_OPTAB(){
   OPTAB["WD"].exists='y';
 }
 
+void load_BLOCKS(){
+  BLOCKS["DEFAULT"].exists = 'y';
+  BLOCKS["DEFAULT"].name = "DEFAULT";
+  BLOCKS["DEFAULT"].startAddress = "?";
+  BLOCKS["DEFAULT"].number=0;
+  BLOCKS["DEFAULT"].LOCCTR = "0";
+}
 void load_tables(){
+  load_BLOCKS();
   load_OPTAB();
   load_REGTAB();
 }

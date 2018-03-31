@@ -8,7 +8,7 @@ using namespace std;
 bool error_flag=false;
 int program_length;
 
-void handle_LTORG(string& litPrefix, int& lineNumberDelta,int lineNumber,int& LOCCTR, int& lastDeltaLOCCTR){
+void handle_LTORG(string& litPrefix, int& lineNumberDelta,int lineNumber,int& LOCCTR, int& lastDeltaLOCCTR, int currentBlockNumber){
   string litAddress,litValue;
   litPrefix = "";
   for(auto const& it: LITTAB){
@@ -21,7 +21,7 @@ void handle_LTORG(string& litPrefix, int& lineNumberDelta,int lineNumber,int& LO
       lineNumber += 5;
       lineNumberDelta += 5;
       LITTAB[it.first].address = intToStringHex(LOCCTR);
-      litPrefix += "\n" + to_string(lineNumber) + "\t" + intToStringHex(LOCCTR) + "\t" + "*" + "\t" + "="+litValue + "\t" + " " + "\t" + " ";
+      litPrefix += "\n" + to_string(lineNumber) + "\t" + intToStringHex(LOCCTR) + "\t" + to_string(currentBlockNumber) + "\t" + "*" + "\t" + "="+litValue + "\t" + " " + "\t" + " ";
 
       if(litValue[0]=='X'){
         LOCCTR += (litValue.length() -3)/2;
@@ -47,6 +47,10 @@ void pass1(){
   string fileLine;
   string writeData,writeDataSuffix="",writeDataPrefix="";
   int index=0;
+
+  string currentBlockName = "DEFAULT";
+  int currentBlockNumber = 0;
+  int totalBlocks = 1;
 
   bool statusCode;
   string label,opcode,operand,comment;
@@ -76,7 +80,7 @@ void pass1(){
     // cout<<startAddress<<endl;
     // exit(0);
     LOCCTR = startAddress;
-    writeData = to_string(lineNumber) + "\t" + intToStringHex(LOCCTR-lastDeltaLOCCTR) + "\t" + label + "\t" + opcode + "\t" + operand + "\t" + comment;
+    writeData = to_string(lineNumber) + "\t" + intToStringHex(LOCCTR-lastDeltaLOCCTR) + "\t" + to_string(currentBlockNumber) + "\t" + label + "\t" + opcode + "\t" + operand + "\t" + comment;
     writeToFile(intermediateFile,writeData); // Write file to intermediate file
 
     getline(sourceFile,fileLine); //Read next line
@@ -186,7 +190,7 @@ void pass1(){
       }
       else if(opcode=="LTORG"){
         operand = " ";
-        handle_LTORG(writeDataSuffix,lineNumberDelta,lineNumber,LOCCTR,lastDeltaLOCCTR);
+        handle_LTORG(writeDataSuffix,lineNumberDelta,lineNumber,LOCCTR,lastDeltaLOCCTR,currentBlockNumber);
       }
       else if(opcode=="ORG"){
         readFirstNonWhiteSpace(fileLine,index,statusCode,operand);
@@ -198,6 +202,19 @@ void pass1(){
         if(SYMTAB[operand].exists=='y'){
           LOCCTR = stringHexToInt(SYMTAB[operand].address);
         }
+      }
+      else if(opcode=="USE"){
+        readFirstNonWhiteSpace(fileLine,index,statusCode,operand);
+        BLOCKS[currentBlockName].LOCCTR = intToStringHex(LOCCTR);
+
+        if(BLOCKS[operand].exists=='n'){
+          BLOCKS[operand].exists = 'y';
+          BLOCKS[operand].name = operand;
+          BLOCKS[operand].number = totalBlocks++;
+          BLOCKS[operand].LOCCTR = intToStringHex(LOCCTR);
+        }
+        currentBlockNumber = BLOCKS[operand].number;
+        LOCCTR = stringHexToInt(BLOCKS[operand].LOCCTR);
       }
       else if(opcode=="EQU"){
         readFirstNonWhiteSpace(fileLine,index,statusCode,operand);
@@ -257,10 +274,10 @@ void pass1(){
             }
             else if((singleOperator=="-" || singleOperator=="+" || singleOperator=="?")&&lastOperand==1){
               if(singleOperator=="-"){
-                pairCount += -1;
+                pairCount--;
               }
               else{
-                pairCount += 1;
+                pairCount++;
               }
             }
 
@@ -294,12 +311,14 @@ void pass1(){
             if(pairCount==1){
               /*relative*/
               relative = 1;
-              /*tempOperand = eval(valueString)*/
+              EvaluateString tempOBJ(valueString);
+              tempOperand = intToStringHex(tempOBJ.getResult(),6);
             }
             else if(pairCount==0){
               /*absolute*/
               relative = 0;
-              /*tempOperand = eval(valueString)*/
+              EvaluateString tempOBJ(valueString);
+              tempOperand = intToStringHex(tempOBJ.getResult(),6);
             }
             else{
               writeData = "Line: "+to_string(lineNumber)+" : Illegal expression";
@@ -326,7 +345,12 @@ void pass1(){
         error_flag = true;
       }
       readFirstNonWhiteSpace(fileLine,index,statusCode,comment,true);
-      writeData = writeDataPrefix + to_string(lineNumber) + "\t" + intToStringHex(LOCCTR-lastDeltaLOCCTR) + "\t" + label + "\t" + opcode + "\t" + operand + "\t" + comment + writeDataSuffix;
+      if(opcode=="EQU" && SYMTAB[label].relative == 0){
+        writeData = writeDataPrefix + to_string(lineNumber) + "\t" + intToStringHex(LOCCTR-lastDeltaLOCCTR) + "\t" + " " + "\t" + label + "\t" + opcode + "\t" + operand + "\t" + comment + writeDataSuffix;
+      }
+      else{
+        writeData = writeDataPrefix + to_string(lineNumber) + "\t" + intToStringHex(LOCCTR-lastDeltaLOCCTR) + "\t" + to_string(currentBlockNumber) + "\t" + label + "\t" + opcode + "\t" + operand + "\t" + comment + writeDataSuffix;
+      }
       writeDataPrefix = "";
       writeDataSuffix = "";
     }
@@ -346,9 +370,9 @@ void pass1(){
   readFirstNonWhiteSpace(fileLine,index,statusCode,operand);
   readFirstNonWhiteSpace(fileLine,index,statusCode,comment,true);
 
-  handle_LTORG(writeDataSuffix,lineNumberDelta,lineNumber,LOCCTR,lastDeltaLOCCTR);
+  handle_LTORG(writeDataSuffix,lineNumberDelta,lineNumber,LOCCTR,lastDeltaLOCCTR,currentBlockNumber);
 
-  writeData = to_string(lineNumber) + "\t" + intToStringHex(LOCCTR-lastDeltaLOCCTR) + "\t" + label + "\t" + opcode + "\t" + operand + "\t" + comment + writeDataSuffix;
+  writeData = to_string(lineNumber) + "\t" + intToStringHex(LOCCTR-lastDeltaLOCCTR) + "\t" + " " + "\t" + label + "\t" + opcode + "\t" + operand + "\t" + comment + writeDataSuffix;
   writeToFile(intermediateFile,writeData);
 
   program_length = LOCCTR - startAddress;
