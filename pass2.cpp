@@ -12,7 +12,7 @@ bool isComment;
 string label,opcode,operand,comment;
 string operand1,operand2;
 
-int lineNumber,address,startAddress;
+int lineNumber,blockNumber,address,startAddress;
 string objectCode, writeData, currentRecord, modificationRecord, endRecord;
 
 int program_counter, base_register_value, currentTextRecordLength;
@@ -29,7 +29,7 @@ string readTillTab(string data,int& index){
   index++;
   return tempBuffer;
 }
-bool readIntermediateFile(ifstream& readFile,bool& isComment, int& lineNumber, int& address, string& label, string& opcode, string& operand, string& comment){
+bool readIntermediateFile(ifstream& readFile,bool& isComment, int& lineNumber, int& address, int& blockNumber, string& label, string& opcode, string& operand, string& comment){
   string fileLine="";
   string tempBuffer="";
   bool tempStatus;
@@ -44,8 +44,8 @@ bool readIntermediateFile(ifstream& readFile,bool& isComment, int& lineNumber, i
     readFirstNonWhiteSpace(fileLine,index,tempStatus,comment,true);
     return true;
   }
-
   address = stringHexToInt(readTillTab(fileLine,index));
+  blockNumber = stoi(readTillTab(fileLine,index));
   label = readTillTab(fileLine,index);
   opcode = readTillTab(fileLine,index);
   if(opcode=="BYTE"){
@@ -73,10 +73,10 @@ string createObjectCodeFormat34(){
     }
 
     string tempOperand = operand.substr(1,operand.length()-1);
-    if(if_all_num(tempOperand)){
+    if(if_all_num(tempOperand)){//Imidiate integer value
       int immediateValue = stoi(tempOperand);
       /*Process Immediate value*/
-      if(immediateValue>=(1<<4*halfBytes)){
+      if(immediateValue>=(1<<4*halfBytes)){//Can't fit it
         writeData = "Line: "+to_string(lineNumber)+" Immediate value exceeds format limit";
         writeToFile(errorFile,writeData);
         objcode = intToStringHex(stringHexToInt(OPTAB[getRealOpcode(opcode)].opcode)+1,2);
@@ -98,7 +98,7 @@ string createObjectCodeFormat34(){
       return objcode;
     }
     else{
-      int operandAddress = stringHexToInt(SYMTAB[tempOperand].address);
+      int operandAddress = stringHexToInt(SYMTAB[tempOperand].address) + stringHexToInt(BLOCKS[BLocksNumToName[SYMTAB[tempOperand].blockNumber]].startAddress);
 
       /*Process Immediate symbol value*/
       if(halfBytes==5){/*If format 4*/
@@ -115,10 +115,11 @@ string createObjectCodeFormat34(){
       }
 
       /*Handle format 3*/
-      program_counter = address;
+      program_counter = address + stringHexToInt(BLOCKS[BLocksNumToName[blockNumber]].startAddress);
       program_counter += (halfBytes==5)?4:3;
       int relativeAddress = operandAddress - program_counter;
 
+      /*Try PC based*/
       if(relativeAddress>=(-2048) && relativeAddress<=2047){
         objcode = intToStringHex(stringHexToInt(OPTAB[getRealOpcode(opcode)].opcode)+1,2);
         objcode += '2';
@@ -126,6 +127,7 @@ string createObjectCodeFormat34(){
         return objcode;
       }
 
+      /*Try base based*/
       if(!nobase){
         relativeAddress = operandAddress - base_register_value;
         if(relativeAddress>=0 && relativeAddress<=4095){
@@ -136,13 +138,14 @@ string createObjectCodeFormat34(){
         }
       }
 
+      /*Use direct addressing with no PC or base*/
       if(operandAddress<=4095){
         objcode = intToStringHex(stringHexToInt(OPTAB[getRealOpcode(opcode)].opcode)+1,2);
         objcode += '0';
         objcode += intToStringHex(operandAddress,halfBytes);
 
         /*add modifacation record here*/
-        modificationRecord += "M^" + intToStringHex(address+1,6) + '^';
+        modificationRecord += "M^" + intToStringHex(address+1+stringHexToInt(BLOCKS[BLocksNumToName[blockNumber]].startAddress),6) + '^';
         modificationRecord += (halfBytes==5)?"05":"03";
         modificationRecord += '\n';
 
@@ -161,8 +164,8 @@ string createObjectCodeFormat34(){
       return objcode;
     }
 
-    int operandAddress = stringHexToInt(SYMTAB[tempOperand].address);
-    program_counter = address;
+    int operandAddress = stringHexToInt(SYMTAB[tempOperand].address) + stringHexToInt(BLOCKS[BLocksNumToName[SYMTAB[tempOperand].blockNumber]].startAddress);
+    program_counter = address + stringHexToInt(BLOCKS[BLocksNumToName[blockNumber]].startAddress);
     program_counter += (halfBytes==5)?4:3;
 
     if(halfBytes==3){
@@ -190,7 +193,7 @@ string createObjectCodeFormat34(){
         objcode += intToStringHex(operandAddress,halfBytes);
 
         /*add modifacation record here*/
-        modificationRecord += "M^" + intToStringHex(address+1,6) + '^';
+        modificationRecord += "M^" + intToStringHex(address+1+stringHexToInt(BLOCKS[BLocksNumToName[blockNumber]].startAddress),6) + '^';
         modificationRecord += (halfBytes==5)?"05":"03";
         modificationRecord += '\n';
 
@@ -203,7 +206,7 @@ string createObjectCodeFormat34(){
       objcode += intToStringHex(operandAddress,halfBytes);
 
       /*add modifacation record here*/
-      modificationRecord += "M^" + intToStringHex(address+1,6) + '^';
+      modificationRecord += "M^" + intToStringHex(address+1+stringHexToInt(BLOCKS[BLocksNumToName[blockNumber]].startAddress),6) + '^';
       modificationRecord += (halfBytes==5)?"05":"03";
       modificationRecord += '\n';
 
@@ -223,6 +226,10 @@ string createObjectCodeFormat34(){
 
     if(tempOperand=="*"){
       tempOperand = "X'" + intToStringHex(address,6) + "'";
+      /*Add modification record for value created by operand `*` */
+      modificationRecord += "M^" + intToStringHex(stringHexToInt(LITTAB[tempOperand].address)+stringHexToInt(BLOCKS[BLocksNumToName[LITTAB[tempOperand].blockNumber]].startAddress),6) + '^';
+      modificationRecord += intToStringHex(6,2);
+      modificationRecord += '\n';
     }
 
     if(LITTAB[tempOperand].exists=='n'){
@@ -235,8 +242,8 @@ string createObjectCodeFormat34(){
       return objcode;
     }
 
-    int operandAddress = stringHexToInt(LITTAB[tempOperand].address);
-    program_counter = address;
+    int operandAddress = stringHexToInt(LITTAB[tempOperand].address) + stringHexToInt(BLOCKS[BLocksNumToName[LITTAB[tempOperand].blockNumber]].startAddress);
+    program_counter = address + stringHexToInt(BLOCKS[BLocksNumToName[blockNumber]].startAddress);
     program_counter += (halfBytes==5)?4:3;
 
     if(halfBytes==3){
@@ -264,7 +271,7 @@ string createObjectCodeFormat34(){
         objcode += intToStringHex(operandAddress,halfBytes);
 
         /*add modifacation record here*/
-        modificationRecord += "M^" + intToStringHex(address+1,6) + '^';
+        modificationRecord += "M^" + intToStringHex(address+1+stringHexToInt(BLOCKS[BLocksNumToName[blockNumber]].startAddress),6) + '^';
         modificationRecord += (halfBytes==5)?"05":"03";
         modificationRecord += '\n';
 
@@ -277,7 +284,7 @@ string createObjectCodeFormat34(){
       objcode += intToStringHex(operandAddress,halfBytes);
 
       /*add modifacation record here*/
-      modificationRecord += "M^" + intToStringHex(address+1,6) + '^';
+      modificationRecord += "M^" + intToStringHex(address+1+stringHexToInt(BLOCKS[BLocksNumToName[blockNumber]].startAddress),6) + '^';
       modificationRecord += (halfBytes==5)?"05":"03";
       modificationRecord += '\n';
 
@@ -311,8 +318,8 @@ string createObjectCodeFormat34(){
       return objcode;
     }
 
-    int operandAddress = stringHexToInt(SYMTAB[tempOperand].address);
-    program_counter = address;
+    int operandAddress = stringHexToInt(SYMTAB[tempOperand].address) + stringHexToInt(BLOCKS[SYMTAB[tempOperand].BLocksNumToName[blockNumber]].startAddress);
+    program_counter = address + stringHexToInt(BLOCKS[BLocksNumToName[blockNumber]].startAddress);
     program_counter += (halfBytes==5)?4:3;
 
     if(halfBytes==3){
@@ -340,7 +347,7 @@ string createObjectCodeFormat34(){
         objcode += intToStringHex(operandAddress,halfBytes);
 
         /*add modifacation record here*/
-        modificationRecord += "M^" + intToStringHex(address+1,6) + '^';
+        modificationRecord += "M^" + intToStringHex(address+1+stringHexToInt(BLOCKS[BLocksNumToName[blockNumber]].startAddress),6) + '^';
         modificationRecord += (halfBytes==5)?"05":"03";
         modificationRecord += '\n';
 
@@ -353,7 +360,7 @@ string createObjectCodeFormat34(){
       objcode += intToStringHex(operandAddress,halfBytes);
 
       /*add modifacation record here*/
-      modificationRecord += "M^" + intToStringHex(address+1,6) + '^';
+      modificationRecord += "M^" + intToStringHex(address+1+stringHexToInt(BLOCKS[BLocksNumToName[blockNumber]].startAddress),6) + '^';
       modificationRecord += (halfBytes==5)?"05":"03";
       modificationRecord += '\n';
 
@@ -401,7 +408,7 @@ void writeTextRecord(bool lastRecord=false){
   }
   else{
     /*Assembler directive which doesn't result in address genrenation*/
-    if(opcode=="START"||opcode=="END"||opcode=="BASE"||opcode=="NOBASE"||opcode=="LTORG"||opcode=="ORG"){
+    if(opcode=="START"||opcode=="END"||opcode=="BASE"||opcode=="NOBASE"||opcode=="LTORG"||opcode=="ORG"||opcode=="EQU"){
       /*DO nothing*/
     }
     else{
@@ -456,18 +463,19 @@ void pass2(){
   currentTextRecordLength=0;
   currentRecord = "";
   modificationRecord = "";
+  blockNumber = 0;
   nobase = true;
 
-  readIntermediateFile(intermediateFile,isComment,lineNumber,address,label,opcode,operand,comment);
+  readIntermediateFile(intermediateFile,isComment,lineNumber,address,blockNumber,label,opcode,operand,comment);
   while(isComment){//Handle with previous comments
     writeData = to_string(lineNumber) + "\t" + comment;
     writeToFile(ListingFile,writeData);
-    readIntermediateFile(intermediateFile,isComment,lineNumber,address,label,opcode,operand,comment);
+    readIntermediateFile(intermediateFile,isComment,lineNumber,address,blockNumber,label,opcode,operand,comment);
   }
 
   if(opcode=="START"){
     startAddress = address;
-    writeData = to_string(lineNumber) + "\t" + intToStringHex(address) + "\t" + label + "\t" + opcode + "\t" + operand + "\t" + objectCode +"\t" + comment;
+    writeData = to_string(lineNumber) + "\t" + intToStringHex(address) + "\t" + to_string(blockNumber) + "\t" + label + "\t" + opcode + "\t" + operand + "\t" + objectCode +"\t" + comment;
     writeToFile(ListingFile,writeData);
   }
   else{
@@ -479,7 +487,7 @@ void pass2(){
   writeData = "H^"+expandString(label,6,' ',true)+'^'+intToStringHex(address,6)+'^'+intToStringHex(program_length,6);
   writeToFile(objectFile,writeData);
 
-  readIntermediateFile(intermediateFile,isComment,lineNumber,address,label,opcode,operand,comment);
+  readIntermediateFile(intermediateFile,isComment,lineNumber,address,blockNumber,label,opcode,operand,comment);
   currentTextRecordLength  = 0;
 
   while(opcode!="END"){
@@ -555,7 +563,7 @@ void pass2(){
       }
       else if(opcode=="BASE"){
         if(SYMTAB[operand].exists=='y'){
-          base_register_value = stringHexToInt(SYMTAB[operand].address);
+          base_register_value = stringHexToInt(SYMTAB[operand].address) + stringHexToInt(BLOCKS[BLocksNumToName[SYMTAB[tempOperand].blockNumber]].startAddress);
           nobase = false;
         }
         else{
@@ -580,23 +588,23 @@ void pass2(){
       //Write to text record if any generated
       writeTextRecord();
 
-      writeData = to_string(lineNumber) + "\t" + intToStringHex(address) + "\t" + label + "\t" + opcode + "\t" + operand + "\t" + objectCode +"\t" + comment;
+      writeData = to_string(lineNumber) + "\t" + intToStringHex(address) + "\t" to_string(blockNumber) + "\t" + label + "\t" + opcode + "\t" + operand + "\t" + objectCode +"\t" + comment;
     }//if not comment
     else{
       writeData = to_string(lineNumber) + "\t" + comment;
     }
     writeToFile(ListingFile,writeData);//Write listing line
-    readIntermediateFile(intermediateFile,isComment,lineNumber,address,label,opcode,operand,comment);//Read next line
+    readIntermediateFile(intermediateFile,isComment,lineNumber,address,blockNumber,label,opcode,operand,comment);//Read next line
     objectCode = "";
   }//while opcode not end
   writeTextRecord();
 
   //Save end record
   writeEndRecord(false);
-  writeData = to_string(lineNumber) + "\t" + intToStringHex(address) + "\t" + label + "\t" + opcode + "\t" + operand + "\t" + "" +"\t" + comment;
+  writeData = to_string(lineNumber) + "\t" + intToStringHex(address) + "\t" + to_string(blockNumber) + "\t" + label + "\t" + opcode + "\t" + operand + "\t" + "" +"\t" + comment;
   writeToFile(ListingFile,writeData);
 
-  while(readIntermediateFile(intermediateFile,isComment,lineNumber,address,label,opcode,operand,comment)){
+  while(readIntermediateFile(intermediateFile,isComment,lineNumber,address,blockNumber,label,opcode,operand,comment)){
     if(label=="*"){
       if(opcode[1]=='C'){
         objectCode = stringToHexString(opcode.substr(3,opcode.length()-4));
@@ -606,7 +614,7 @@ void pass2(){
       }
       writeTextRecord();
     }
-    writeData = to_string(lineNumber) + "\t" + intToStringHex(address) + "\t" + label + "\t" + opcode + "\t" + operand + "\t" + objectCode +"\t" + comment;
+    writeData = to_string(lineNumber) + "\t" + intToStringHex(address) + "\t" + to_string(blockNumber) + label + "\t" + opcode + "\t" + operand + "\t" + objectCode +"\t" + comment;
     writeToFile(ListingFile,writeData);
   }
   writeTextRecord(true);

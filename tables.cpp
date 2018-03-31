@@ -19,9 +19,11 @@ struct struct_literal{
     string value;
     string address;
     char exists;
+    int blockNumber = 0;
     struct_literal(){
       value="";
       address="?";
+      blockNumber = 0;
       exists='n';
     }
 };
@@ -29,10 +31,12 @@ struct struct_label{
      string address;
      string name;
      int relative;
+     int blockNumber;
      char exists;
      struct_label(){
        name="undefined";
        address="0";
+       blockNumber = 0;
        exists='n';
        relative = 0;
      }
@@ -341,7 +345,7 @@ void load_OPTAB(){
 void load_BLOCKS(){
   BLOCKS["DEFAULT"].exists = 'y';
   BLOCKS["DEFAULT"].name = "DEFAULT";
-  BLOCKS["DEFAULT"].startAddress = "?";
+  BLOCKS["DEFAULT"].startAddress = "00000";
   BLOCKS["DEFAULT"].number=0;
   BLOCKS["DEFAULT"].LOCCTR = "0";
 }

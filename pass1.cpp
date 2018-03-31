@@ -7,6 +7,7 @@ using namespace std;
 /*Variable to keep persisted*/
 bool error_flag=false;
 int program_length;
+string BLocksNumToName[totalBlocks];
 
 void handle_LTORG(string& litPrefix, int& lineNumberDelta,int lineNumber,int& LOCCTR, int& lastDeltaLOCCTR, int currentBlockNumber){
   string litAddress,litValue;
@@ -21,6 +22,7 @@ void handle_LTORG(string& litPrefix, int& lineNumberDelta,int lineNumber,int& LO
       lineNumber += 5;
       lineNumberDelta += 5;
       LITTAB[it.first].address = intToStringHex(LOCCTR);
+      LITTAB[it.first].blockNumber = currentBlockNumber;
       litPrefix += "\n" + to_string(lineNumber) + "\t" + intToStringHex(LOCCTR) + "\t" + to_string(currentBlockNumber) + "\t" + "*" + "\t" + "="+litValue + "\t" + " " + "\t" + " ";
 
       if(litValue[0]=='X'){
@@ -102,6 +104,7 @@ void pass1(){
           SYMTAB[label].address = intToStringHex(LOCCTR);
           SYMTAB[label].relative = 1;
           SYMTAB[label].exists = 'y';
+          SYMTAB[label].blockNumber = currentBlockNumber;
         }
         else{
           writeData = "Line: "+to_string(lineNumber)+" : Duplicate symbol for '"+label+"'. Previously defined at "+SYMTAB[label].address;
@@ -137,6 +140,7 @@ void pass1(){
               LITTAB[tempOperand].value = tempOperand;
               LITTAB[tempOperand].exists = 'y';
               LITTAB[tempOperand].address = "?";
+              LITTAB[tempOperand].blockNumber = -1;
             }
           }
         }
@@ -211,7 +215,7 @@ void pass1(){
           BLOCKS[operand].exists = 'y';
           BLOCKS[operand].name = operand;
           BLOCKS[operand].number = totalBlocks++;
-          BLOCKS[operand].LOCCTR = intToStringHex(LOCCTR);
+          BLOCKS[operand].LOCCTR = "0";
         }
         currentBlockNumber = BLOCKS[operand].number;
         LOCCTR = stringHexToInt(BLOCKS[operand].LOCCTR);
@@ -312,23 +316,23 @@ void pass1(){
               /*relative*/
               relative = 1;
               EvaluateString tempOBJ(valueString);
-              tempOperand = intToStringHex(tempOBJ.getResult(),6);
+              tempOperand = intToStringHex(tempOBJ.getResult());
             }
             else if(pairCount==0){
               /*absolute*/
               relative = 0;
               EvaluateString tempOBJ(valueString);
-              tempOperand = intToStringHex(tempOBJ.getResult(),6);
+              tempOperand = intToStringHex(tempOBJ.getResult());
             }
             else{
               writeData = "Line: "+to_string(lineNumber)+" : Illegal expression";
               writeToFile(errorFile,writeData);
-              tempOperand = "000000";
+              tempOperand = "00000";
               relative = 0;
             }
           }
           else{
-            tempOperand = "000000";
+            tempOperand = "00000";
             relative = 0;
           }
         }
@@ -336,6 +340,7 @@ void pass1(){
         SYMTAB[label].name = label;
         SYMTAB[label].address = tempOperand;
         SYMTAB[label].relative = relative;
+        SYMTAB[label].blockNumber = currentBlockNumber;
         lastDeltaLOCCTR = LOCCTR - stringHexToInt(tempOperand);
       }
       else{
@@ -375,7 +380,23 @@ void pass1(){
   writeData = to_string(lineNumber) + "\t" + intToStringHex(LOCCTR-lastDeltaLOCCTR) + "\t" + " " + "\t" + label + "\t" + opcode + "\t" + operand + "\t" + comment + writeDataSuffix;
   writeToFile(intermediateFile,writeData);
 
-  program_length = LOCCTR - startAddress;
+  int LocctrArr[totalBlocks];
+  for(auto const& it: BLOCKS){
+    LocctrArr[it.second.number] = stringHexToInt(it.second.LOCCTR);
+    BLocksNumToName[it.second.number] = it.first;
+  }
+
+  for(int i = 1 ;i<totalBlocks;i++){
+    LocctrArr[i] += LocctrArr[i-1];
+  }
+
+  for(auto const& it: BLOCKS){
+    if(it.second.startAddress=="?"){
+      it.second.startAddress = intToStringHex(LocctrArr[it.second.number - 1]);
+    }
+  }
+
+  program_length = LocctrArr[totalBlocks - 1] - startAddress;
 
   sourceFile.close();
   intermediateFile.close();
