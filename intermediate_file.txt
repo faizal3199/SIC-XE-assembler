@@ -49,12 +49,14 @@ Line	Address	Label	OPCODE	OPERAND	Comment
 240	01066		JEQ	WLOOP	Comment here
 245	01069		LDCH	BUFFER,X	Comment here
 250	0106C		WD	=X'05'	Comment here
-255	0106F		TIXR	T	Comment here
-260	01071		JLT	WLOOP	Comment here
-265	01074		RSUB	 	Comment here
-270	01057		ORG	EXIT	test comment for ORG
-275	01057		LDF	=*	Test for literal * here
-280	01077		ORG	Test	comment for ORG
-285	01077		END	FIRST	Comment here
-290	01077	*	=X'001057'	 	 
-295	0107A	*	=X'05'	 	 
+255	0106F	EQUTES	EQU	15	
+260	0106F		TIXR	T	Comment here
+265	01071		JLT	WLOOP	Comment here
+270	01074		RSUB	 	Comment here
+275	01057		ORG	EXIT	test comment for ORG
+280	01057		LDF	=*	Test for literal * here
+285	0105A		LDA	EQUTES	
+290	01077		ORG	Test	comment for ORG
+295	01077		END	FIRST	Comment here
+300	01077	*	=X'001057'	 	 
+305	0107A	*	=X'05'	 	 

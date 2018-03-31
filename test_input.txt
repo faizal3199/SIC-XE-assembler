@@ -47,10 +47,12 @@ WLOOP   TD      =X'05' Comment here
         JEQ     WLOOP Comment here
         LDCH    BUFFER,X Comment here
         WD      =X'05' Comment here
+EQUTES  EQU 15
         TIXR    T Comment here
         JLT     WLOOP Comment here
         RSUB Comment here
         ORG EXIT test comment for ORG
         LDF =* Test for literal * here
+        LDA EQUTES
         ORG Test comment for ORG
         END     FIRST Comment here

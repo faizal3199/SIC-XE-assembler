@@ -198,6 +198,29 @@ void pass1(){
           LOCCTR = stringHexToInt(SYMTAB[operand].address);
         }
       }
+      else if(opcode=="EQU"){
+        readFirstNonWhiteSpace(fileLine,index,statusCode,operand);
+        string tempOperand;
+        if(operand=="*"){
+          tempOperand = intToStringHex(LOCCTR-lastDeltaLOCCTR,6);
+        }
+        else if(if_all_num(operand)){
+          tempOperand = intToStringHex(stoi(operand),6);
+        }
+        else{
+          if(SYMTAB[operand].exists=='y'){
+            tempOperand = SYMTAB[operand].address;
+          }
+          else{
+            writeData = "Line: "+to_string(lineNumber)+" : Can't find symbol. Found "+operand;
+            writeToFile(errorFile,writeData);
+            tempOperand = "000000";
+          }
+        }
+        /*TODO expressions*/
+        SYMTAB[label].name = label;
+        SYMTAB[label].address = tempOperand;
+      }
       else{
         readFirstNonWhiteSpace(fileLine,index,statusCode,operand);
         writeData = "Line: "+to_string(lineNumber)+" : Invalid OPCODE. Found " + opcode;
