@@ -52,7 +52,7 @@ void pass1(){
   string label,opcode,operand,comment;
   string tempOperand;
 
-  int startAddress,LOCCTR,lineNumber,lastDeltaLOCCTR,lineNumberDelta=0;
+  int startAddress,LOCCTR,saveLOCCTR,lineNumber,lastDeltaLOCCTR,lineNumberDelta=0;
   lineNumber = 0;
   lastDeltaLOCCTR = 0;
 
@@ -186,6 +186,17 @@ void pass1(){
       else if(opcode=="LTORG"){
         operand = " ";
         handle_LTORG(writeDataSuffix,lineNumberDelta,lineNumber,LOCCTR,lastDeltaLOCCTR);
+      }
+      else if(opcode=="ORG"){
+        readFirstNonWhiteSpace(fileLine,index,statusCode,operand);
+        int tempVariable;
+        tempVariable = saveLOCCTR;
+        saveLOCCTR = LOCCTR;
+        LOCCTR = tempVariable;
+
+        if(SYMTAB[operand].exists=='y'){
+          LOCCTR = stringHexToInt(SYMTAB[operand].address);
+        }
       }
       else{
         readFirstNonWhiteSpace(fileLine,index,statusCode,operand);

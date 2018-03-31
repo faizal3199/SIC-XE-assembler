@@ -50,5 +50,7 @@ WLOOP   TD      =X'05' Comment here
         TIXR    T Comment here
         JLT     WLOOP Comment here
         RSUB Comment here
+        ORG EXIT test comment for ORG
         LDF =* Test for literal * here
+        ORG Test comment for ORG
         END     FIRST Comment here

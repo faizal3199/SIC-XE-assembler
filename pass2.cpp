@@ -401,7 +401,7 @@ void writeTextRecord(bool lastRecord=false){
   }
   else{
     /*Assembler directive which doesn't result in address genrenation*/
-    if(opcode=="START"||opcode=="END"||opcode=="BASE"||opcode=="NOBASE"||opcode=="LTORG"){
+    if(opcode=="START"||opcode=="END"||opcode=="BASE"||opcode=="NOBASE"||opcode=="LTORG"||opcode=="ORG"){
       /*DO nothing*/
     }
     else{
