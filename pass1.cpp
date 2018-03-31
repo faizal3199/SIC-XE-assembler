@@ -125,6 +125,9 @@ void pass1(){
 
           if(getFlagFormat(operand)=='='){
             tempOperand = operand.substr(1,operand.length()-1);
+            if(tempOperand=="*"){
+              tempOperand = "X'" + intToStringHex(LOCCTR-lastDeltaLOCCTR) + "'";
+            }
             if(LITTAB[tempOperand].exists=='n'){
               LITTAB[tempOperand].value = tempOperand;
               LITTAB[tempOperand].exists = 'y';

@@ -221,6 +221,10 @@ string createObjectCodeFormat34(){
   else if(getFlagFormat(operand)=='='){//Literals
     string tempOperand = operand.substr(1,operand.length()-1);
 
+    if(tempOperand=="*"){
+      tempOperand = "X'" + intToStringHex(address) + "'";
+    }
+
     if(LITTAB[tempOperand].exists=='n'){
       writeData = "Line "+to_string(lineNumber)+" : Symbol doesn't exists. Found " + tempOperand;
       writeToFile(errorFile,writeData);

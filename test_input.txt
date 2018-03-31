@@ -50,4 +50,5 @@ WLOOP   TD      =X'05' Comment here
         TIXR    T Comment here
         JLT     WLOOP Comment here
         RSUB Comment here
+        LDF =* Test for literal * here
         END     FIRST Comment here
