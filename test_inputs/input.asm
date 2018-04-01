@@ -8,22 +8,22 @@ CLOOP   JSUB    RDREC  Comment here
         JSUB    WRREC  Comment here
         J       CLOOP Comment here
 ENDFIL  LDA     =C'EOF' Comment here
-        STA    BUFFER Comment here
+        STA     BUFFER Comment here
         LDA     #3  Comment here
         STA     LENGTH  Comment here
         JSUB    WRREC  Comment here
         J       @RETADR Comment here
-        USE CDATA
+        USE     CDATA
 RETADR  RESW    1 Comment here
 LENGTH  RESW    1 Comment here
-  USE CBLKS
+        USE     CBLKS
 BUFFER  RESB    4096 Comment here
-BUFEND  EQU * Comment here to test * literal
-MAXLEN EQU BUFEND-BUFFER
+BUFEND  EQU     * Comment here to test * literal
+MAXLEN  EQU     BUFEND-BUFFER
 .
 .   RDREC SUBROUTINE
 .
-  USE DEFAULT
+        USE     DEFAULT
 RDREC   CLEAR   X Comment here
         CLEAR   A Comment here
         CLEAR   S Comment here
@@ -37,13 +37,13 @@ RLOOP   TD      INPUT Comment here
         TIXR    T Comment here
         JLT     RLOOP Comment here
 EXIT    STX     LENGTH Comment here
-        RSUB Comment here
-        USE CDATA
+        RSUB    Comment here
+        USE     CDATA
 INPUT   BYTE    X'F1' Comment here
 .
 .   WRREC SUBROUTINE
 .
-  USE DEFAULT
+        USE     DEFAULT
 WRREC   CLEAR   X Comment here
         LDT     LENGTH Comment here
 WLOOP   TD      =X'05' Comment here
@@ -52,7 +52,7 @@ WLOOP   TD      =X'05' Comment here
         WD      =X'05' Comment here
         TIXR    T Comment here
         JLT     WLOOP Comment here
-        RSUB Comment here
-        USE CDATA
+        RSUB         Comment here
+        USE     CDATA
         LTORG
         END     FIRST Comment here

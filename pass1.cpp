@@ -321,7 +321,7 @@ void pass1(){
             valueString += valueTemp;
 
             singleOperator= "";
-            while(i<operand.length()-1&&(lastByte=='+'||lastByte=='-'||lastByte=='/'||lastByte=='*')){
+            while(i<operand.length()&&(lastByte=='+'||lastByte=='-'||lastByte=='/'||lastByte=='*')){
               singleOperator += lastByte;
               lastByte = operand[++i];
             }
@@ -339,9 +339,9 @@ void pass1(){
             else{
               lastOperator = 0;
             }
-          }
 
-          valueString += singleOperator;
+            valueString += singleOperator;
+          }
 
           if(!Illegal){
             if(pairCount==1){
@@ -353,6 +353,7 @@ void pass1(){
             else if(pairCount==0){
               /*absolute*/
               relative = 0;
+              cout<<valueString<<endl;
               EvaluateString tempOBJ(valueString);
               tempOperand = intToStringHex(tempOBJ.getResult());
             }
