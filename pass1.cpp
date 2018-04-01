@@ -5,6 +5,7 @@
 using namespace std;
 
 /*Variable to keep persisted*/
+string fileName;
 bool error_flag=false;
 int program_length;
 string *BLocksNumToName;
@@ -40,10 +41,23 @@ void pass1(){
   ifstream sourceFile;//begin
   ofstream intermediateFile, errorFile;
 
-  sourceFile.open("test_input.txt");
-  intermediateFile.open("intermediate_file.txt");
+  sourceFile.open(fileName);
+  if(!sourceFile){
+    cout<<"Unable to open file: "<<fileName<<endl;
+    exit(1);
+  }
+
+  intermediateFile.open("intermediate_" + fileName);
+  if(!intermediateFile){
+    cout<<"Unable to open file: intermediate_"<<fileName<<endl;
+    exit(1);
+  }
   writeToFile(intermediateFile,"Line\tAddress\tLabel\tOPCODE\tOPERAND\tComment");
-  errorFile.open("error_file.txt");
+  errorFile.open("error_"+fileName);
+  if(!errorFile){
+    cout<<"Unable to open file: error_"<<fileName<<endl;
+    exit(1);
+  }
   writeToFile(errorFile,"************PASS1************");
 
   string fileLine;
@@ -259,15 +273,11 @@ void pass1(){
         else{
           lastByte = operand[operand.length()-1];
 
-          cout<<"Init: "<<operand<<endl;
-
           while(lastByte=='+'||lastByte=='-'||lastByte=='/'||lastByte=='*'){
             readFirstNonWhiteSpace(fileLine,index,statusCode,tempOperand);
             operand += tempOperand;
             lastByte = operand[operand.length()-1];
           }//Code for reading whole operand
-
-          cout<<"Final: "<<operand<<endl;
 
           for(int i=0;i<operand.length();){
             singleOperand = "";
@@ -277,7 +287,6 @@ void pass1(){
               singleOperand += lastByte;
               lastByte = operand[++i];
             }
-            cout<<"SingleOperand: "<<singleOperand<<endl;
 
             if(SYMTAB[singleOperand].exists=='y'){//Check operand existence
               lastOperand = SYMTAB[singleOperand].relative;
@@ -309,17 +318,11 @@ void pass1(){
               }
             }
 
-            cout<<"before valueString: "<<valueString<<endl;
-            valueString += valueTemp;
-            cout<<"after valueString: "<<valueString<<endl;
-
             singleOperator= "";
             while(i<operand.length()-1&&(lastByte=='+'||lastByte=='-'||lastByte=='/'||lastByte=='*')){
               singleOperator += lastByte;
               lastByte = operand[++i];
             }
-
-            cout<<"SingleOperator: "<<singleOperator<<endl;
 
             if(singleOperator.length()>1){
               writeData = "Line: "+to_string(lineNumber)+" : Illegal operator in expression. Found "+singleOperator;
@@ -334,25 +337,18 @@ void pass1(){
             else{
               lastOperator = 0;
             }
-
-            cout<<"before valueString: "<<valueString<<endl;
-            valueString += singleOperator;
-            cout<<"after valueString: "<<valueString<<endl;
-
           }
 
           if(!Illegal){
             if(pairCount==1){
               /*relative*/
               relative = 1;
-              cout<<"valueString: "<<valueString<<endl;
               EvaluateString tempOBJ(valueString);
               tempOperand = intToStringHex(tempOBJ.getResult());
             }
             else if(pairCount==0){
               /*absolute*/
               relative = 0;
-              cout<<"valueString: "<<valueString<<endl;
               EvaluateString tempOBJ(valueString);
               tempOperand = intToStringHex(tempOBJ.getResult());
             }

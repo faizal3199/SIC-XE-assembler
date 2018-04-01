@@ -463,12 +463,31 @@ void writeEndRecord(bool write=true){
 
 void pass2(){
   string tempBuffer;
-  intermediateFile.open("intermediate_file.txt");//begin
+  intermediateFile.open("intermediate_"+fileName);//begin
+  if(!intermediateFile){
+    cout<<"Unable to open file: intermediate_"<<fileName<<endl;
+    exit(1);
+  }
   getline(intermediateFile, tempBuffer); // Discard heading line
-  objectFile.open("object_file.txt");
-  ListingFile.open("listing_file.txt");
+
+  objectFile.open("object_"+fileName);
+  if(!objectFile){
+    cout<<"Unable to open file: object_"<<fileName<<endl;
+    exit(1);
+  }
+
+  ListingFile.open("listing_"+fileName);
+  if(!ListingFile){
+    cout<<"Unable to open file: listing_"<<fileName<<endl;
+    exit(1);
+  }
   writeToFile(ListingFile,"Line\tAddress\tLabel\tOPCODE\tOPERAND\tObjectCode\tComment");
-  errorFile.open("error_file.txt",fstream::app);
+
+  errorFile.open("error_"+fileName,fstream::app);
+  if(!errorFile){
+    cout<<"Unable to open file: error_"<<fileName<<endl;
+    exit(1);
+  }
   writeToFile(errorFile,"\n\n************PASS2************");
 
   /*Intialize global variables*/
@@ -642,12 +661,20 @@ void pass2(){
 */
 
 int main(){
+  cout<<"Enter name of input file:";
+  cin>>fileName;
+
+  cout<<"\nLoading OPTAB"<<endl;
   load_tables();
+
+  cout<<"\nPerforming PASS1"<<endl;
+  cout<<"Writing intermediate file to 'intermediate_"<<fileName<<"'"<<endl;
+  cout<<"Writing error file to 'error_"<<fileName<<"'"<<endl;
   pass1();
+
+  cout<<"\nPerforming PASS2"<<endl;
+  cout<<"Writing object file to 'object_"<<fileName<<"'"<<endl;
+  cout<<"Writing listing file to 'listing_"<<fileName<<"'"<<endl;
   pass2();
 
-  // for(auto const& it: BLOCKS){
-  //   cout<<it.second.name<<" : "<<it.second.LOCCTR<<endl;
-  //   cout<<it.second.name<<" : "<<it.second.startAddress<<endl<<endl;
-  // }
 }
