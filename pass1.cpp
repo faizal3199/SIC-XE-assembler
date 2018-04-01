@@ -7,7 +7,7 @@ using namespace std;
 /*Variable to keep persisted*/
 bool error_flag=false;
 int program_length;
-string BLocksNumToName[totalBlocks];
+string *BLocksNumToName;
 
 void handle_LTORG(string& litPrefix, int& lineNumberDelta,int lineNumber,int& LOCCTR, int& lastDeltaLOCCTR, int currentBlockNumber){
   string litAddress,litValue;
@@ -381,6 +381,7 @@ void pass1(){
   writeToFile(intermediateFile,writeData);
 
   int LocctrArr[totalBlocks];
+  BLocksNumToName = new string[totalBlocks];
   for(auto const& it: BLOCKS){
     LocctrArr[it.second.number] = stringHexToInt(it.second.LOCCTR);
     BLocksNumToName[it.second.number] = it.first;
@@ -392,7 +393,7 @@ void pass1(){
 
   for(auto const& it: BLOCKS){
     if(it.second.startAddress=="?"){
-      it.second.startAddress = intToStringHex(LocctrArr[it.second.number - 1]);
+      BLOCKS[it.first].startAddress= intToStringHex(LocctrArr[it.second.number - 1]);
     }
   }
 

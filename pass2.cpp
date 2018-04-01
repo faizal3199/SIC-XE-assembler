@@ -318,7 +318,7 @@ string createObjectCodeFormat34(){
       return objcode;
     }
 
-    int operandAddress = stringHexToInt(SYMTAB[tempOperand].address) + stringHexToInt(BLOCKS[SYMTAB[tempOperand].BLocksNumToName[blockNumber]].startAddress);
+    int operandAddress = stringHexToInt(SYMTAB[tempOperand].address) + stringHexToInt(BLOCKS[BLocksNumToName[SYMTAB[tempOperand].blockNumber]].startAddress);
     program_counter = address + stringHexToInt(BLOCKS[BLocksNumToName[blockNumber]].startAddress);
     program_counter += (halfBytes==5)?4:3;
 
@@ -563,7 +563,7 @@ void pass2(){
       }
       else if(opcode=="BASE"){
         if(SYMTAB[operand].exists=='y'){
-          base_register_value = stringHexToInt(SYMTAB[operand].address) + stringHexToInt(BLOCKS[BLocksNumToName[SYMTAB[tempOperand].blockNumber]].startAddress);
+          base_register_value = stringHexToInt(SYMTAB[operand].address) + stringHexToInt(BLOCKS[BLocksNumToName[SYMTAB[operand].blockNumber]].startAddress);
           nobase = false;
         }
         else{
@@ -588,7 +588,7 @@ void pass2(){
       //Write to text record if any generated
       writeTextRecord();
 
-      writeData = to_string(lineNumber) + "\t" + intToStringHex(address) + "\t" to_string(blockNumber) + "\t" + label + "\t" + opcode + "\t" + operand + "\t" + objectCode +"\t" + comment;
+      writeData = to_string(lineNumber) + "\t" + intToStringHex(address) + "\t" + to_string(blockNumber) + "\t" + label + "\t" + opcode + "\t" + operand + "\t" + objectCode +"\t" + comment;
     }//if not comment
     else{
       writeData = to_string(lineNumber) + "\t" + comment;
