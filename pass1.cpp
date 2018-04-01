@@ -259,24 +259,29 @@ void pass1(){
         else{
           lastByte = operand[operand.length()-1];
 
+          cout<<"Init: "<<operand<<endl;
+
           while(lastByte=='+'||lastByte=='-'||lastByte=='/'||lastByte=='*'){
             readFirstNonWhiteSpace(fileLine,index,statusCode,tempOperand);
             operand += tempOperand;
             lastByte = operand[operand.length()-1];
           }//Code for reading whole operand
 
-          for(int i=0;i<operand.length();i++){
+          cout<<"Final: "<<operand<<endl;
+
+          for(int i=0;i<operand.length();){
             singleOperand = "";
 
             lastByte = operand[i];
-            while(lastByte=='+'&&lastByte=='-'&&lastByte=='/'&&lastByte=='*'&&i<operand.length()-1){
+            while((lastByte!='+' && lastByte!='-' && lastByte!='/' && lastByte!='*') && i<operand.length()){
               singleOperand += lastByte;
               lastByte = operand[++i];
             }
+            cout<<"SingleOperand: "<<singleOperand<<endl;
 
             if(SYMTAB[singleOperand].exists=='y'){//Check operand existence
               lastOperand = SYMTAB[singleOperand].relative;
-              valueTemp = stringHexToInt(SYMTAB[singleOperand].address);
+              valueTemp = to_string(stringHexToInt(SYMTAB[singleOperand].address));
             }
             else if((singleOperand != "" || singleOperand !="?" ) && if_all_num(singleOperand)){
               lastOperand = 0;
@@ -304,13 +309,17 @@ void pass1(){
               }
             }
 
+            cout<<"before valueString: "<<valueString<<endl;
             valueString += valueTemp;
+            cout<<"after valueString: "<<valueString<<endl;
 
             singleOperator= "";
             while(i<operand.length()-1&&(lastByte=='+'||lastByte=='-'||lastByte=='/'||lastByte=='*')){
               singleOperator += lastByte;
               lastByte = operand[++i];
             }
+
+            cout<<"SingleOperator: "<<singleOperator<<endl;
 
             if(singleOperator.length()>1){
               writeData = "Line: "+to_string(lineNumber)+" : Illegal operator in expression. Found "+singleOperator;
@@ -326,7 +335,9 @@ void pass1(){
               lastOperator = 0;
             }
 
+            cout<<"before valueString: "<<valueString<<endl;
             valueString += singleOperator;
+            cout<<"after valueString: "<<valueString<<endl;
 
           }
 
@@ -334,12 +345,14 @@ void pass1(){
             if(pairCount==1){
               /*relative*/
               relative = 1;
+              cout<<"valueString: "<<valueString<<endl;
               EvaluateString tempOBJ(valueString);
               tempOperand = intToStringHex(tempOBJ.getResult());
             }
             else if(pairCount==0){
               /*absolute*/
               relative = 0;
+              cout<<"valueString: "<<valueString<<endl;
               EvaluateString tempOBJ(valueString);
               tempOperand = intToStringHex(tempOBJ.getResult());
             }
