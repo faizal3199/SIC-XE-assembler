@@ -47,7 +47,7 @@ bool readIntermediateFile(ifstream& readFile,bool& isComment, int& lineNumber, i
   address = stringHexToInt(readTillTab(fileLine,index));
   tempBuffer = readTillTab(fileLine,index);
   if(tempBuffer == " "){
-    blockNumber = 0;
+    blockNumber = -1;
   }
   else{
     blockNumber = stoi(tempBuffer);
@@ -402,7 +402,7 @@ void writeTextRecord(bool lastRecord=false){
   }
   if(objectCode != ""){
     if(currentRecord.length()==0){
-      writeData = "T^" + intToStringHex(address,6) + '^';
+      writeData = "T^" + intToStringHex(address+stringHexToInt(BLOCKS[BLocksNumToName[blockNumber]].startAddress),6) + '^';
       writeToFile(objectFile,writeData,false);
     }
     //What is objectCode length > 60
@@ -413,7 +413,7 @@ void writeTextRecord(bool lastRecord=false){
 
       //Initialize new text currentRecord
       currentRecord = "";
-      writeData = "T^" + intToStringHex(address,6) + '^';
+      writeData = "T^" + intToStringHex(address+stringHexToInt(BLOCKS[BLocksNumToName[blockNumber]].startAddress),6) + '^';
       writeToFile(objectFile,writeData,false);
     }
 
@@ -620,7 +620,12 @@ void pass2(){
       //Write to text record if any generated
       writeTextRecord();
 
-      writeData = to_string(lineNumber) + "\t" + intToStringHex(address) + "\t" + to_string(blockNumber) + "\t" + label + "\t" + opcode + "\t" + operand + "\t" + objectCode +"\t" + comment;
+      if(blockNumber==-1){
+        writeData = to_string(lineNumber) + "\t" + intToStringHex(address) + "\t" + " " + "\t" + label + "\t" + opcode + "\t" + operand + "\t" + objectCode +"\t" + comment;
+      }
+      else{
+        writeData = to_string(lineNumber) + "\t" + intToStringHex(address) + "\t" + to_string(blockNumber) + "\t" + label + "\t" + opcode + "\t" + operand + "\t" + objectCode +"\t" + comment;
+      }
     }//if not comment
     else{
       writeData = to_string(lineNumber) + "\t" + comment;
@@ -633,7 +638,7 @@ void pass2(){
 
   //Save end record
   writeEndRecord(false);
-  writeData = to_string(lineNumber) + "\t" + intToStringHex(address) + "\t" + to_string(blockNumber) + "\t" + label + "\t" + opcode + "\t" + operand + "\t" + "" +"\t" + comment;
+  writeData = to_string(lineNumber) + "\t" + intToStringHex(address) + "\t" + " " + "\t" + label + "\t" + opcode + "\t" + operand + "\t" + "" +"\t" + comment;
   writeToFile(ListingFile,writeData);
 
   while(readIntermediateFile(intermediateFile,isComment,lineNumber,address,blockNumber,label,opcode,operand,comment)){

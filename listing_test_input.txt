@@ -20,7 +20,7 @@ Line	Address	Label	OPCODE	OPERAND	ObjectCode	Comment
 95	00000	2		USE	CBLKS		
 100	00000	2	BUFFER	RESB	4096		Comment here
 105	01000	2	BUFEND	EQU	*		Comment here to test * literal
-110	00000	0	MAXLEN	EQU	BUFEND-BUFFER		
+110	00000	 	MAXLEN	EQU	BUFEND-BUFFER		
 115	.
 120	.   RDREC SUBROUTINE
 125	.
@@ -58,4 +58,4 @@ Line	Address	Label	OPCODE	OPERAND	ObjectCode	Comment
 285	00007	1		LTORG	 		
 290	00007	1	*	=C'EOF'	 	454F46	 
 295	0000A	1	*	=X'05'	 	05	 
-300	00066	0		END	FIRST		Comment here
+300	00066	-1		END	FIRST		Comment here
