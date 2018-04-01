@@ -318,6 +318,8 @@ void pass1(){
               }
             }
 
+            valueString += valueTemp;
+
             singleOperator= "";
             while(i<operand.length()-1&&(lastByte=='+'||lastByte=='-'||lastByte=='/'||lastByte=='*')){
               singleOperator += lastByte;
@@ -338,6 +340,8 @@ void pass1(){
               lastOperator = 0;
             }
           }
+
+          valueString += singleOperator;
 
           if(!Illegal){
             if(pairCount==1){

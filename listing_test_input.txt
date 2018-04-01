@@ -58,4 +58,4 @@ Line	Address	Label	OPCODE	OPERAND	ObjectCode	Comment
 285	00007	1		LTORG	 		
 290	00007	1	*	=C'EOF'	 	454F46	 
 295	0000A	1	*	=X'05'	 	05	 
-300	00066	-1		END	FIRST		Comment here
+300	00066	 		END	FIRST		Comment here
