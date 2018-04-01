@@ -45,7 +45,13 @@ bool readIntermediateFile(ifstream& readFile,bool& isComment, int& lineNumber, i
     return true;
   }
   address = stringHexToInt(readTillTab(fileLine,index));
-  blockNumber = stoi(readTillTab(fileLine,index));
+  tempBuffer = readTillTab(fileLine,index);
+  if(tempBuffer == " "){
+    blockNumber = 0;
+  }
+  else{
+    blockNumber = stoi(tempBuffer);
+  }
   label = readTillTab(fileLine,index);
   opcode = readTillTab(fileLine,index);
   if(opcode=="BYTE"){
@@ -73,8 +79,15 @@ string createObjectCodeFormat34(){
     }
 
     string tempOperand = operand.substr(1,operand.length()-1);
-    if(if_all_num(tempOperand)){//Imidiate integer value
-      int immediateValue = stoi(tempOperand);
+    if(if_all_num(tempOperand)||((SYMTAB[tempOperand].exists=='y')&&SYMTAB[tempOperand].relative==0)){//Imidiate integer value
+      int immediateValue;
+
+      if(if_all_num(tempOperand)){
+        immediateValue = stoi(tempOperand);
+      }
+      else{
+        immediateValue = stringHexToInt(SYMTAB[tempOperand].address);
+      }
       /*Process Immediate value*/
       if(immediateValue>=(1<<4*halfBytes)){//Can't fit it
         writeData = "Line: "+to_string(lineNumber)+" Immediate value exceeds format limit";
@@ -632,4 +645,9 @@ int main(){
   load_tables();
   pass1();
   pass2();
+
+  // for(auto const& it: BLOCKS){
+  //   cout<<it.second.name<<" : "<<it.second.LOCCTR<<endl;
+  //   cout<<it.second.name<<" : "<<it.second.startAddress<<endl<<endl;
+  // }
 }

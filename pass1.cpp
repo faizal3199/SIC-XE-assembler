@@ -208,17 +208,36 @@ void pass1(){
         }
       }
       else if(opcode=="USE"){
+        // cout<<"Changing block"<<endl;
+        // for(auto const& it: BLOCKS){
+        //   cout<<it.second.name<<":"<<it.second.LOCCTR<<endl;
+        // }
+        //
+        // cout<<"Current block number: "<<currentBlockNumber<<endl;
+        // cout<<"Current LOCCTR: "<<LOCCTR<<endl;
+
         readFirstNonWhiteSpace(fileLine,index,statusCode,operand);
         BLOCKS[currentBlockName].LOCCTR = intToStringHex(LOCCTR);
 
         if(BLOCKS[operand].exists=='n'){
+          // cout<<"Creating block: "<<operand<<endl;
           BLOCKS[operand].exists = 'y';
           BLOCKS[operand].name = operand;
           BLOCKS[operand].number = totalBlocks++;
           BLOCKS[operand].LOCCTR = "0";
         }
+
+        // cout<<"Changing to: "<<operand<<endl;
+        // for(auto const& it: BLOCKS){
+        //   cout<<it.second.name<<":"<<it.second.LOCCTR<<endl;
+        // }
+
         currentBlockNumber = BLOCKS[operand].number;
+        currentBlockName = BLOCKS[operand].name;
         LOCCTR = stringHexToInt(BLOCKS[operand].LOCCTR);
+
+        // cout<<"Current block number: "<<currentBlockNumber<<endl;
+        // cout<<"Current LOCCTR: "<<LOCCTR<<endl;
       }
       else if(opcode=="EQU"){
         readFirstNonWhiteSpace(fileLine,index,statusCode,operand);
@@ -364,6 +383,7 @@ void pass1(){
     }
     writeToFile(intermediateFile,writeData);
 
+    BLOCKS[currentBlockName].LOCCTR = intToStringHex(LOCCTR);//Update LOCCTR of block after every instruction
     getline(sourceFile,fileLine); //Read next line
     lineNumber += 5 + lineNumberDelta;
     lineNumberDelta = 0;
@@ -374,6 +394,11 @@ void pass1(){
   }
   readFirstNonWhiteSpace(fileLine,index,statusCode,operand);
   readFirstNonWhiteSpace(fileLine,index,statusCode,comment,true);
+
+  /*Change to deafult before dumping literals*/
+  currentBlockName = "DEFAULT";
+  currentBlockNumber = 0;
+  LOCCTR = stringHexToInt(BLOCKS[currentBlockName].LOCCTR);
 
   handle_LTORG(writeDataSuffix,lineNumberDelta,lineNumber,LOCCTR,lastDeltaLOCCTR,currentBlockNumber);
 
