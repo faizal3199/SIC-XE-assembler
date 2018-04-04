@@ -666,6 +666,7 @@ void pass2(){
 */
 
 int main(){
+  cout<<"****Input file and executable(assembler.out) should be in same folder****"<<endl<<endl;
   cout<<"Enter name of input file:";
   cin>>fileName;
 
