@@ -38,7 +38,7 @@ void handle_LTORG(string& litPrefix, int& lineNumberDelta,int lineNumber,int& LO
   }
 }
 
-void evaluateExpression(string expression, bool& relative,string& tempOperand,int lineNumber, ofstream& errorFile){
+void evaluateExpression(string expression, bool& relative,string& tempOperand,int lineNumber, ofstream& errorFile,bool& error_flag){
   string singleOperand="?",singleOperator="?",valueString="",valueTemp="",writeData="";
   int lastOperand=0,lastOperator=0,pairCount=0;
   char lastByte = ' ';
@@ -71,6 +71,7 @@ void evaluateExpression(string expression, bool& relative,string& tempOperand,in
     if(lastOperand*lastOperator == 1){//Check expressions legallity
       writeData = "Line: "+to_string(lineNumber)+" : Illegal expression";
       writeToFile(errorFile,writeData);
+      error_flag = true;
       Illegal = true;
       break;
     }
@@ -94,6 +95,7 @@ void evaluateExpression(string expression, bool& relative,string& tempOperand,in
     if(singleOperator.length()>1){
       writeData = "Line: "+to_string(lineNumber)+" : Illegal operator in expression. Found "+singleOperator;
       writeToFile(errorFile,writeData);
+      error_flag = true;
       Illegal = true;
       break;
     }
@@ -125,12 +127,14 @@ void evaluateExpression(string expression, bool& relative,string& tempOperand,in
     else{
       writeData = "Line: "+to_string(lineNumber)+" : Illegal expression";
       writeToFile(errorFile,writeData);
+      error_flag = true;
       tempOperand = "00000";
       relative = 0;
     }
   }
   else{
     tempOperand = "00000";
+    error_flag = true;
     relative = 0;
   }
 }
@@ -309,6 +313,14 @@ void pass1(){
       }
       else if(opcode=="ORG"){
         readFirstNonWhiteSpace(fileLine,index,statusCode,operand);
+
+        char lastByte = operand[operand.length()-1];
+        while(lastByte=='+'||lastByte=='-'||lastByte=='/'||lastByte=='*'){
+          readFirstNonWhiteSpace(fileLine,index,statusCode,tempOperand);
+          operand += tempOperand;
+          lastByte = operand[operand.length()-1];
+        }
+
         int tempVariable;
         tempVariable = saveLOCCTR;
         saveLOCCTR = LOCCTR;
@@ -316,6 +328,16 @@ void pass1(){
 
         if(SYMTAB[operand].exists=='y'){
           LOCCTR = stringHexToInt(SYMTAB[operand].address);
+        }
+        else{
+          bool relative;
+          //set error_flag to false
+          error_flag = false;
+          evaluateExpression(operand,relative,tempOperand,lineNumber,errorFile,error_flag);
+          if(!error_flag){
+            LOCCTR = stringHexToInt(tempOperand);
+          }
+          error_flag = false;//reset error_flag
         }
       }
       else if(opcode=="USE"){
@@ -353,11 +375,7 @@ void pass1(){
       else if(opcode=="EQU"){
         readFirstNonWhiteSpace(fileLine,index,statusCode,operand);
         tempOperand = "";
-        string singleOperand="?",singleOperator="?",valueString="",valueTemp="";
-        int lastOperand=0,lastOperator=0,pairCount=0;
         bool relative;
-        char lastByte = ' ';
-        bool Illegal = false;
 
         if(operand=="*"){
           tempOperand = intToStringHex(LOCCTR-lastDeltaLOCCTR,6);
@@ -368,14 +386,14 @@ void pass1(){
           relative = 0;
         }
         else{
-          lastByte = operand[operand.length()-1];
+          char lastByte = operand[operand.length()-1];
 
           while(lastByte=='+'||lastByte=='-'||lastByte=='/'||lastByte=='*'){
             readFirstNonWhiteSpace(fileLine,index,statusCode,tempOperand);
             operand += tempOperand;
             lastByte = operand[operand.length()-1];
           }//Code for reading whole operand
-          evaluateExpression(operand,relative,tempOperand,lineNumber,errorFile);
+          evaluateExpression(operand,relative,tempOperand,lineNumber,errorFile,error_flag);
         }
 
         SYMTAB[label].name = label;
